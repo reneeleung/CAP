@@ -1,0 +1,40 @@
+Progressive generalized weakness (unable to stand from chair/comb hair), facial/hand rashes, polyarthralgia ×3 months – peaked at presentation.
+
+Prior Tx Response: No prior treatment. Symptoms worsened progressively over 3 months; neglected rash/fatigue until weakness impaired function.
+PMH:Nil significant pre-SLE. No prior meds.
+
+PE
+Malar rash (face/eyelids)
+Vasculitic rash: Non-blanching purpura with 1cm ulceration on both hands
+Hyperpigmented atrophic patch (right chest, suggestive DLE)
+Proximal > distal weakness: Shoulders/hips MRC 3/5, elbows/knees MRC 4/5
+Absent:Synovitis, oral ulcers, dysphagia, renal/pericardial rub.
+
+Labs: Cytopenias: WBC 3.2↓ (N:4-11), Hb 8.3↓ (N:12-16), lymph 0.5↓ (N:1-3)
+ESR 55↑ (N:<20), CRP 14.5↑ (N:<5), CPK 1295↑ (N:0-150)
+ST 306.6↑ (N:<40), ALT 91.3↑ (N:<40)
+ANA+, dsDNA+, anti-Smith+, U1RNP+, anti-Ku+, anti-histone+
+
+Electrophysiology: EMG/NCS – Fibrillations/PSW in all muscles; myopathic MUAPs (proximal).
+Imaging: Hand XR – no calcinosis/erosions.
+
+Impression
+SLE with myositis & vasculitis flare
+
+DDx:
+Drug-induced myopathy ruled out (no prior med exposure)
+
+Management Plan
+Prednisolone 40 mg PO daily
+Hydroxychloroquine 200 mg PO BID
+Methotrexate 15 mg PO weekly + folic acid 5 mg PO 3×/week
+Supportive:
+Omeprazole 40 mg daily (GI protection)
+SPF 50+ sunscreen + avoid live vaccines
+Prophylaxis: Calcium/Vit D + alendronate 70 mg weekly (bone protection; DEXA pending)
+Arrange pneumococcal/influenza vax
+Monitoring:
+Weekly: CBC, LFTs, CPK ×4 weeks
+Rheum f/u in 2 weeks (rash/weakness response) – taper steroids if CPK↓50%
+Critical: If no improvement in 4 weeks → escalate to IVIG/rituximab.
+

@@ -1,0 +1,36 @@
+BP 220/120, HR 55, Temp 104°F
+
+Acute-onset severe hypertension + oligoanuria (Cr ↑ 1.0→4.4mg/dL in 72h) with gross hematuria, fever, lower extremity rash, and persistent headache.
+Initial: Nifedipine for HTN - nonadherent.
+Obstetric Hx: 2 first-trimester miscarriages (APS risk).
+PE:
+Pericardial friction rub (+)
+Malignant HTN (220/120) with bradycardia (55bpm)
+Blanching erythematous rash (lower extremities) + petechiae
+no edema
+Neuro: no focal deficits
+
+Labs:
+Cr 4.4mg/dL↑↑ (baseline 1.0), BUN 56mg/dL↑
+Immuno: ANA+ 1:320, C3 0.46 g/L↓ (NR:0.90-1.80), anti-dsDNA+
+PLT 100k↓, Hgb 11.7g/dL
+urine microscopy: RBC 10/hpf,  WBC 5/hpf , 3+ protein, RBC casts present
+
+CT Abd/Pelv: Mild pericardial/pleural effusions
+Brain MRI: Negative (prior)
+Bx: Diffuse proliferative LN (Class IV-G[A]): Global endocapillary hypercellularity, TMA: Full-house IF (IgG/IgA/IgM/C1q/C3)
+
+EM: Subendothelial deposits + endothelial TRIs
+
+Dx
+SLE Flare with Multi-Organ Involvement:
+LN (Class IV-G), TMA,Pericarditis, thrombocytopenia
+
+Management Plan
+IV Methylprednisolone 1g x3d → Prednisone 1mg/kg/day
+Cyclophosphamide 0.5g/m² IV monthly
+Therapeutic Heparin → Warfarin
+Labetalol IV → ACEi/ARB (when Cr stable)
+RRT: Initiate HD for oligoanuria (anticipated 2-3wk)
+
+

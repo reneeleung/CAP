@@ -1,0 +1,42 @@
+Vitals:BP 154/95, HR 76, Temp 36.8°C, RR 16
+
+Complaint & HPI & PMH:
+Complaint: 3 episodes generalized tonic-clonic seizures (each 3-5 min, LOC, frothing, post-ictal confusion). Progressive bilateral lower limb/periorbital edema, polyarthralgia (knees/wrists), fatigue, oral ulcers, confusion.
+Prior Tx: Non-adherent to HCQ + low-dose steroids (prior Rx for SLE dx 7y ago). Appendectomy 6y ago.
+
+
+PE:
+Neuro: Oriented post-ictal. Power 4/5 all limbs. No sensory/cerebellar deficits.
+Mucocutaneous: Malar rash, 2 oral ulcers.
+MSK: Mild joint tenderness (knees/wrists), no swelling.
+Cardio/Resp: Normal.
+
+Labs:
+Hb 11.73↓ g/dL, Plt 128↓ ×10³/µL, D-dimer 4090↑ ng/mL, Alb 2.3↓ g/dL
+UPCR +1, WBC 52↑/HPF, RBC 70↑/HPF, Cr 1.54↑ mg/dL
+ANA+, dsDNA+, C3 54↓ mg/dL, C4 5.5↓ mg/dL, aPL-
+CMV/EBV-, cultures-
+LP: TCC<1, protein elevated, no oligoclonal band. autoimmune encephalitis panel -ve. 
+
+Imaging:
+MRI brain (acute): T2/FLAIR hyperintensities frontoparietal > occipital lobes – consistent with lupus cerebritis.
+Echo: Dilated cardiomyopathy (EF 30%), severe diffuse hypokinesia.
+Neurophysio: EEG – generalized epileptiform + slow sharp waves.
+
+Impression:
+CNS: Lupus cerebritis (seizures), LN,
+New cardiomyopathy (suspected lupus myocarditis)
+
+Management Plan:
+Meds:
+MP 1g IV ×3d → Pred 60mg daily taper
+CYC 750mg/m² IV – 1st dose given. Next dose in 2w
+HCQ 200mg BID (reinforce adherence)
+LEV 1000mg BID (seizure control)
+HF Rx: Sacubitril/valsartan, Furosemide, Bisoprolol, Spironolactone
+Prophylaxis: PCP prophylaxis (TMP-SMX). Ophthalmology screen q5y for HCQ (baseline done).
+Follow:
+Labs in 72h: CBC, Cr, LFT, C3/C4
+Neuro/renal clinic f/u in 1w, Rheum f/u post-CYC
+Repeat echo in 3mo.
+

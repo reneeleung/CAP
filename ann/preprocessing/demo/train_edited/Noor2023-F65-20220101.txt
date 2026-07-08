@@ -1,0 +1,28 @@
+Patient Complaint: Acute delirium (confusion, forgetfulness), aggression, inability to recognize family, refusal of routine activities (e.g., church), threatening self-harm.
+Prior Tx Response:
+SLE w/ lupus nephritis Class II; baseline immunosuppression: prednisone 40mg qd, mycophenolic acid 180mg BID, HCQ 200mg BID.
+Progressive proteinuria → added SC belimumab. Neuropsych symptoms began after belimumab initiation.
+No prior psychiatric Hx; tolerated steroids (oral/IV) without issues.
+
+PE
+Neuro: Disoriented, agitated, impaired recognition (family/objects), no focal deficits.
+Skin/MSK: No active malar rash, synovitis, or renal angle tenderness.
+Paraclinical
+Labs (ER): CBC/CMP unremarkable
+Imaging: Head CT/MRI negative for acute pathology.
+Urine: Proteinuria (progressive pre-belimumab; no new UPCR).
+
+Impression
+Lupus nephritis (baseline Class II + progressive proteinuria).
+belimumab-induced delirium and behavioral changes (temporal link, resolution after d/c).
+
+Management Plan
+D/C belimumab
+Continue baseline immunosuppression:
+Prednisone 40mg qd, mycophenolic acid 180mg BID, HCQ 200mg BID.
+Monitoring:
+Neuropsych: Daily caregiver assessment for symptom recurrence.
+Renal: UPCR q1–2wk; SLE serology (dsDNA/C3/C4) in 2wk.
+Follow-up: Rheumatology + nephrology in 1wk.
+Prophylaxis: PJP prophylaxis (TMP-SMX) d/t high-dose steroids + MPA.
+

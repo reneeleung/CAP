@@ -1,0 +1,43 @@
+Vitals: BP 110/73
+
+Complaint & HPI/PMH
+Pt c/o acute bilateral vision loss (0.05 OU) + eyelid edema ×3 days. New-onset SLE dx during admission: LN class II (biopsy-proven), bilateral pleural effusion. Prior low-dose steroids (40mg methylpred ×5d) + IVIG failed → vision decline.
+
+PE
+Ocular:
+Bilateral lid edema, severe conjunctival edema/congestion
+Proptosis, lagophthalmos
+Corneal yellow hyperplastic tissue
+Systemic:
+Bilateral pleural effusion (serositis)
+No rash/arthritis/neuro signs
+
+Labs:
+Hb 113↓ g/L, Alb 29.7↓ g/L
+Renal: UP 1+, UTP 674.69↑ mg/24h
+Serology: ANA 1:1000↑, dsDNA 1:40↑(normal range <1:10, immunofluorescence), anti-Sm+, C3 0.29↓, C4 0.008↓
+
+Imaging:
+CT chest: Bilateral pleural effusion
+Orbital MRI: Eyelid/periorbital swelling
+Ophthalmic:
+IOP: OD 27.5↑/OS 28.5↑ mmHg
+FFA: Bilateral macular RPE leakage
+OCT: Bilateral macular neuroepithelial detachment
+
+Impression
+Active SLE flare: Lupus chorioretinopathy (bilateral CSC-like lesions) + lupus nephritis (class II) + serositis. 
+
+Management Plan
+Pulse therapy: IV methylprednisolone 120mg OD ×3d → oral steroid taper
+Immunosuppression: Cyclophosphamide 0.8g IV (induction for LN)
+Ocular:
+Avoid acetazolamide (contraindicated in CSC)
+Monitor IOP q6h during pulse
+Prophylaxis: PPI, calcium/vit D, Pneumocystis prophylaxis
+Monitoring:
+Vision/IOP daily
+Repeat OCT in 1wk
+Renal: UTP weekly, Cr 2x/wk
+F/U: Ophthalmology daily; Rheum/Nephro in 48h.
+

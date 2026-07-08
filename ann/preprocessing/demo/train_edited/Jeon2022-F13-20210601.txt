@@ -1,0 +1,32 @@
+c/o: Dizziness, floaters, bilateral nasal visual field loss, fever, fatigue, weight loss, abrupt hair loss, facial/extremity rash.
+
+PE
+Neuro-ophthalmic: Binasal hemianopsia; VA OD hand motion, OS 15/20.
+Fundoscopy: Exudates at optic disc, macular edema, vascular sheathing, perivascular hemorrhages, ghost vessels periphery OU
+Dermatologic: Papules/crusts (face, extremities).
+Constitutional: Fever, fatigue, weight loss.
+
+Labs: WBC 2260↓/μL, Hb 7.0↓ g/dL, Plt 93↓×10³/μL, C3 60↓ (86-182), ANA 1:2560↑ (speckled), dsDNA 52.8↑ (<27), anti-Smith (+), anti-RNP 153.5↑ (<20), LA 50.5↑ sec (<38), anti-β2GP1 IgG 86.1↑ (<20). p-ANCA (+). Direct Coombs (+).
+Imaging: Orbital MRI – normal.
+
+Impression
+Active SLE Flare: Vaso-occlusive retinopathy (bilateral) + Hematologic (pancytopenia, hemolysis) + Immunologic (hypocomplementemia, +aPL) + Cutaneous (rash). Severe (SLICC criteria met).
+
+DDx:
+Infectious retinopathy: Ruled out – No infectious exposure, +SLE-specific serology.
+APMPPE/MS: Excluded – Bilateral vascular occlusion, +aPL/thrombotic markers.
+ANCA-vasculitis: Unlikely – Negative MPO/PR3, +SLE autoantibodies.
+
+Management Plan
+Acute Immunosuppression:
+IV Methylprednisolone 20mg/kg/day ×3d (1g/day).
+HCQ 200-400mg daily (chronic control).
+Local Ocular:
+Intravitreal triamcinolone OD + dexamethasone implant OS (target inflammation/edema).
+PRP OU (prevent neovascularization).
+Monitoring:
+Daily visual fields/acuity during admission.
+Weekly CBC/C3/dsDNA until stabilized.
+Repeat FFA in 4wks.
+Follow-up: Ophthalmology q48h; Rheum FU 1wk post-discharge.
+

@@ -1,0 +1,38 @@
+Vitals: BP 130/80
+
+Complaint & HPI/PMH
+Pt c/o acute bilateral vision loss (CF both eyes) ×2 days. Developed malar rash + polyarthritis (3 joints) during workup. Rapid progression to oliguric renal failure + thrombocytopenia within days.
+
+PE
+Neuro-ophthalmic:
+Bilateral RAPD, non-reactive pupils
+Optic disc hyperemia + blurred margins OU
+Dermatologic: Malar rash
+Musculoskeletal: Active synovitis (3 peripheral joints)
+
+Labs:
+Hb 8.8↓ g/dL, Plt 21.9↓×10³/mm³, ESR 56↑ mm/hr, CRP 9.5↑ mg/dL
+Renal: BUN 72↑ mg/dL, Cr 2.8↑ mg/dL, UP 2.4 g/dl
+Serology: ANA+, dsDNA+, LE cell+, lupus anticoagulant+ (initially), C3/C4↓
+ant-NMO -ve. VEP equivocal
+
+Imaging:
+FFA: Bilateral disc leakage, retinal non-perfusion, venous tortuosity 
+Brain MRI: No demyelination (MS excluded)
+Electrophysio: VEP ↑latency ↓amplitude OU
+
+Impression
+Active SLE flare: New-onset bilateral optic neuritis + CRVO, lupus nephritis (class IV biopsy), hematologic crisis (thrombocytopenia/anemia), malar rash, polyarthritis. 
+
+Management Plan
+Pulse therapy: IV methylprednisolone 1g ×3d → prednisone 1mg/kg/day
+Renal: Hemodialysis initiated (Cr 2.8↑), monitor UOP/strict I&O
+Heme: Platelet transfusion (Plt 21.9↓), CBC q12h
+Ophthalmic:
+Serial VEP/Humphrey perimetry (central scotoma OS)
+Avoid anticoagulation (CRVO + thrombocytopenia)
+Monitoring:
+Daily: Cr, Plt, visual acuity
+Repeat lupus anticoagulant titer post-steroids
+F/U: Nephrology/Rheum daily rounds; ophthal reassess in 72h.
+

@@ -1,0 +1,30 @@
+Progressive exertional dyspnea and mild proximal muscle weakness (shoulders/hips) – peaked over past 2 years, worst at presentation.
+
+Prior Tx Response: On hydroxychloroquine 400 mg/day since 2009 with SLE remission
+PMH: SLE and secondary Sjögren’s syndrome (dx 2009), hypothyroidism (on levothyroxine), hx pleuritis, constrictive pericarditis, Raynaud’s (new in 2016).
+
+PE
+Moderate symmetric weakness: neck extensors 4-/5, shoulder abductors 4/5, hip flexors 4+/5 on MRC scale. No malar rash, oral ulcers, synovitis, or skin lesions. Raynaud’s phenomenon present. Diaphragmatic excursion reduced on palpation.
+
+Paraclinical tests
+Labs: Lymphopenia, thrombocytopenia; C3/C4 low; ANA pos (speckled/nucleolar), anti-SSA/RO52 high pos; CPK nl, aldolase nl; RF neg, dsDNA nl, ANCA neg.
+Imaging: CXR elevated right hemidiaphragm
+CT chest: no ILD or effusions
+Diaphragmatic US: Severe weakness – diaphragm thickening fractions R 38%, L 45% (normal >80%).
+Electrophysiological: EMG-fibrillations in biceps/iliopsoas/paraspinals; myopathic units in triceps/vastus lateralis.
+Biopsy (biceps muscle): Endomysial CD20+ B-cell aggregates, MHC class I/II upregulation.
+Serology: Anti-U1RNP neg, myositis-specific abs neg via immunoprecipitation.
+PFTs confirmed lung restriction (TLC 65%, FVC 58%).
+
+Impression
+SLE with myositis and shrinking lung syndrome (SLS) 
+Diaphragmatic weakness, B-cell predominant myositis on biopsy.
+
+DDx: Idiopathic polymyositis excluded by SLE serology (ANA/anti-SSA pos) and overlap features; RA ruled out by negative RF/absence of erosions.
+
+Management Plan
+Start prednisone 15 mg PO daily and mycophenolate mofetil 1000 mg PO BID (target 2 g/day).
+Prophylaxis: Initiate TMP-SMX for PJP prevention; update pneumococcal/influenza vax once stable.
+Critical monitoring: PFTs (FVC/DLCO) monthly ×3; repeat diaphragmatic US in 3 mos; CPK, CBC, C3/C4 q4wks.
+Follow-up: Rheum f/u in 4 weeks; if no improvement in dyspnea/muscle strength, consider rituximab (targeting CD20+ aggregates).
+

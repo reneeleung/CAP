@@ -1,0 +1,43 @@
+Vitals
+RR -, O₂ sat 97%
+
+Complaint & HPI/PMH
+
+
+newly Dx SLE 2 weeks ago→  IV methylprednisolone 80mg BID (Jun 8-12) → resolved fever/rash but triggered seizures on Jun 14
+Meropenem + IVIG 20g/d ×5d → no infection control
+Methylprednisolone ↑160mg/d (post-seizure) → Generalized tonic-clonic seizures with loss of consciousness, cyanosis, urinary incontinence, and foaming at mouth.
+
+PE
+current alert
+malar rash , non-blanching dermohemia hands/feet
+Pitting edema (4 limbs)
+Swollen eyelids, weak breath sounds bilateral bases
+
+Labs (Jun 8): WBC 1.4↓, Hb 9↓, Plt 89↓; U/A: blood 3+, protein 3+; Cr 125↑; C3 0.18↓, C4 0.13↓; ANA 1:1280, anti-dsDNA >300↑
+MRI (Jun 20): Bilateral cortical/subcortical edema (T2/FLAIR↑, ADC↑) in frontal/parietal/occipital lobes, cerebellum, basal ganglia → diagnostic of RPES
+CSF: Elevated protein
+
+Impression
+Active SLE flare with Seizures
+Lupus nephritis
+
+DDx:
+Infectious encephalitis:(no CSF pleocytosis; IVIG/abx failed)
+Cerebral vasculitis:(MRI shows vasogenic edema, not infarcts)
+Status epilepticus:(secondary to RPES imaging)
+
+Management Plan
+Meds:
+Methylprednisolone 1g IV daily ×3d (RPES protocol)
+Cyclophosphamide 400 mg IV weekly (refractory CNS/renal)
+Antiepileptic (levetiracetam load)
+Aggressive BP control (labetalol infusion, target SBP<140)
+Continue HCQ 200mg BID
+Monitoring:
+Hourly neuro checks + BP
+Daily CBC, Cr, U/A
+Repeat MRI brain in 1-2 weeks (confirm reversibility)
+Prophylaxis: PCP prophylaxis (TMP-SMX DS daily)
+F/U: Neuro/Rheum daily; discharge on prednisone 60mg + MMF 0.75g
+

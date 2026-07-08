@@ -1,0 +1,9 @@
+{
+    "textDisplayFontSize": "13px",
+    "annotatedHighlightColor": "#70a1ff",
+    "annotatedTextColor": "#ffffff",
+    "selectionBgColor": "#af509f",
+    "selectionTextColor": "#ffffff",
+    "relationshipToken1BorderColor": "#007bff",
+    "relationshipToken2BorderColor": "#dc3545"
+  }

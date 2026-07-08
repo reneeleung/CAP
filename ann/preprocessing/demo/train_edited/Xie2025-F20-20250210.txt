@@ -1,0 +1,30 @@
+Complaint: Acute psychosis (persecutory/referential delusions, incoherent speech, irritability, impulsive behavior) triggered by stress.Known SLE with predominant cutaneous involvement. On HCQ only. 
+
+PE
+Neuro: Alert, disorganized thought, paranoid delusions.
+Skin: Alopecia.
+Ext: Mild bilateral LL pitting edema.
+MSK: No active synovitis.
+CV/Resp: No rub/effusion.
+
+Labs (Feb 2025): WBC 1.86↓, Hb 96↓, ESR 114↑, C3 56↓, C4 10↓; ANA +1:1000, Anti-Smith ++, Anti-dsDNA ++, ACL 46.3↑ RU/mL.
+MRI Brain (Feb 2025): R ant frontal horn WM lesion (T1/T2↑, FLAIR rim↑) - stable chronic encephalomalacia/gliosis.
+EEG: Normal. LP normal. 
+Psych Scales: SAPS 71 (↑↑ positive Sx).
+
+Impression
+Active SLE flare w/ severe Neuropsychiatric (Psychosis) & Hematologic (Leukopenia, Anemia) involvement.
+
+Plan
+Immunosuppression:
+Steroids: Methylprednisolone 500mg IV daily x3d → taper (250mg x3d → 120mg x3d → 80mg daily).
+IV Cyclophosphamide
+HCQ: Continue 0.2g BID.
+Psych: Olanzapine ↑ to 15mg QHS, add Clonazepam 2mg QHS & Valproate SR 0.25g BID.
+Prophylaxis: ASA 100mg daily (↑ACL).
+Monitoring:
+Labs weekly: CBC, ESR, C3/C4, LFTs.
+Repeat SLEDAI-2K in 1 week.
+MRI Brain in 3 months.
+F/U Rheum/Neuro/Psych in 1 week.
+

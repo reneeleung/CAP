@@ -1,0 +1,25 @@
+c/o: Acute altered mental status—disorientation, incoherent speech, .
+PMH: "Bipolar/anxiety" dx (prior ER visits for panic attacks). 
+Recent Hx: Similar unresponsiveness episode months→Benzos/antidepressants → no sustained improvement.
+
+PE
+Neuro: Disoriented, incoherent speech, no focal deficits/neck stiffness/papilledema. No active rash/arthritis.
+
+Labs: Elevated gamma gap, BUN/Cr↑, nephritic-range proteinuria, urine RBC +++, Hb↓. ANA+, anti-dsDNA 81↑
+Renal biopsy: Class IV LN (diffuse proliferative GN + fibrillary deposits).
+EEG: Moderate cerebral dysfunction (no seizures).
+CSF: Lymphocytic pleocytosis, protein↑, glucose nl → aseptic meningitis.
+MRI brain: Patchy cerebellar enhancements, spectroscopy: ↑choline/creatine ratio + lactate peak → metabolic disturbance.
+
+Impression:
+NPSLE (delirium, aseptic meningitis).
+Renal: Class IV LN (biopsy-proven).
+
+Plan
+Rx:
+IV Methylprednisolone 1g daily ×3d → prednisone 1mg/kg taper.
+Cyclophosphamide 1g IV monthly ×6mo (started inpatient).
+Monitoring:
+ICU, Daily neuro checks
+UPCR weekly
+

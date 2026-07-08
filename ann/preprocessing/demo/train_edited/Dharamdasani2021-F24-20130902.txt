@@ -1,0 +1,38 @@
+c/o: Sudden painless vision loss OD.
+Prior Tx Response:
+Initial SLE retinopathy (8mo prior): HCQ + oral prednisolone → vision stabilized. Left eye PRP done.
+Current flare: Vision loss despite prior therapy → vitreous hemorrhage OD.
+PMH: SLE Dx 9mo prior (no renal/CNS involvement noted).
+
+PE
+Ocular:
+OD: NLP, central vitreous hemorrhage (obscuring disc/macula).
+OS: Disc pallor, vitreous band, arteriolar attenuation, PRP scars, venous sheathing.
+Systemic: No active rash/arthritis/edema documented at flare.
+
+Imaging:
+OCT OD: Vitreous hemorrhage + macular traction.
+OCT OS: Macular thickening.
+Prior Labs (SLE Dx): Presumed +ANA/dsDNA (not repeated at flare).
+
+Impression
+Active SLE Flare: Severe Retinopathy with Vitreous Hemorrhage OD (neovascular complication of vaso-occlusive disease). Key Feature: Acute vision loss + hemorrhage in setting of known SLE retinopathy.
+
+DDx:
+Diabetic Retinopathy: Excluded – No DM history, classic SLE vascular findings (arteriolar attenuation, CWS).
+Retinal Vein Occlusion: Unlikely – Bilateral prior involvement, ischemic pattern on FFA.
+Infection (CMV/EBV): Ruled out – No systemic signs, prior infectious w/u negative.
+
+Management Plan
+Acute Ocular:
+Intravitreal Ranibizumab ×2 doses OU (reduce neovascularization).
+Sectoral PRP OU (treat ischemia).
+Systemic Immunosuppression:
+IV Methylprednisolone 500mg daily ×3d → Oral Prednisolone 30mg daily.
+IV Cyclophosphamide (6 cycles over 6mo) 
+Continue HCQ (chronic control).
+Monitoring:
+Weekly BCVA/OCT until hemorrhage resolves.
+Monthly CBC/liver/renal during cyclophosphamide.
+Follow-up: Urgent ophtho FU in 48h; Rheum co-management.
+

@@ -1,0 +1,41 @@
+Vitals: BP 126/72, HR 80
+Patient Complaint: Acute bilateral headaches, confusion, auditory/visual hallucinations, left homonymous hemianopia. for 1 months
+Prior Tx Response:
+Initial hospitalization (Dec 2010): Headaches + confusion → empiric abx (no benefit).
+Steroid trial (IV methylprednisolone): Rapid symptom resolution.
+Relapsed 4d post-d/c during prednisone taper (↓ to 10mg).
+Brain biopsy (outside hosp): "Suggestive of vasculitis."
+
+PE
+Neuro: Disoriented, left homonymous hemianopia, auditory/visual hallucinations.
+Systemic: No rash, oral ulcers, synovitis, or serositis.
+
+Labs:
+ESR 26↑, CRP 1 (12/2010); ANA-, dsDNA-, C3/C4 nl.
+CSF: Protein 65↑ (nl 0–35), WBC 1/hpf, RBC 8/hpf; all cultures/PCR negative (HSV/VZV/Lyme/syphilis).
+Imaging:
+MRI (12/2010): T2 hyperintensities (bilateral temporal/frontal), leptomeningeal enhancement, microhemorrhages (gradient-echo/SWI).
+Repeat MRI (01/2011): Reduced white matter lesions.
+Biopsy (right temporal): Granulomatous vasculitis + amyloid β deposition (confirmed ABRA).
+
+Impression
+Amyloid β-related angiitis (ABRA), NOT SLE flare:
+Neuropsych symptoms + biopsy-proven amyloid inflammation.
+Steroid-responsive but relapsing with taper.
+
+DDx:
+Primary CNS vasculitis (PACNS): Ruled out by amyloid-positive biopsy + age > typical PACNS.
+SLE/CNS lupus: Excluded by negative ANA/dsDNA, no systemic features.
+Infection/malignancy: Extensive negative workup (CSF/imaging).
+
+Management Plan
+Immunosuppression:
+Prednisone ↑ to 20mg daily (slow taper).
+Mycophenolate mofetil 1000mg BID.
+Symptom control: Levetiracetam (EEG epileptiform activity).
+Prophylaxis: TMP-SMX (PJP prevention).
+Monitoring:
+Neuro: Serial MRI q3mo; EEG if hallucinations recur.
+Labs: CBC/LFTs q2wk (mycophenolate).
+Follow-up: Rheumatology/neuro in 2wk.
+

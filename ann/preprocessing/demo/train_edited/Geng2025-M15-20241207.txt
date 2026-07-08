@@ -1,0 +1,34 @@
+Vitals: Temp 38°C
+
+5d ago seizure (unresponsiveness, limb rigidity/clonus; 6 min duration) → levetiracetam 1000mg/d → seizures  stopped →rapid onset Delirium/agitation with hallucinations, delusions for 1 day → Olanzapine 5mg/d →↓but rapid onset catatonia
+
+Hx: Diagnosed with SLE 1 month ago with fever, fatigue, leukopenia, anemia, elevated LFTs, +ANA, +anti-dsDNA, hypocomplementemia. Initial treatment: IV hydrocortisone 200 mg/day
+
+PE:
+Cachectic, lethargic, Jaundice. 
+Catatonia: Immobility, posturing (buttock elevation), echolalia, mutism, staring, negativism, waxy flexibility (BFCRS: 24)
+
+labs(10/11/2024) Leukopenia, anemia, ↑LFTs, ↑bilirubin, +ANA (1:1280), +anti-dsDNA (311 IU/mL), ↓C3/C4
+Labs (05/12/2024): dsDNA ↓<100, C3/C4 low, Anti-ENA/APL/AI-encephalitis Abs (-). 
+CSF nl. EEG nl post-levetiracetam. 
+Head MRI: Mild sulcal widening.
+US: Mild splenomegaly
+EEG: No epileptiform discharges.
+
+Impression:
+NPSLE (seizure, delirium)
+Probable Olanzapine-Induced Catatonia
+
+DDx:
+NPSLE (Catatonia): Ruled out - Catatonia onset after antipsychotic (olanzapine), rapid resolution with BZD/AP cessation. No specific NPSLE autoAbs (anti-ribP/Sm/etc).
+Drug-Induced Catatonia: Confirmed - Naranjo score 7 (probable), temporal link to olanzapine, resolved with discontinuation + lorazepam.
+
+Management Plan:
+Catatonia: D/C Olanzapine. Start lorazepam 1mg TID (3mg/d) → Taper by 0.5mg/d
+Steroids: IV methylprednisolone 80mg/d 
+Cyclophosphamide 0.4g weekly → Initiate/continue.
+hydroxychloroquine 200 mg/day 
+Seizure: Continue levetiracetam 500mg BID.
+Monitoring: Daily BFCRS, neuro checks. Repeat dsDNA/C3/C4 in 1 wk. Neuropsych eval (MoCA 21/30 → cognitive deficit).
+Follow-up: Rheum + Psych consult weekly. Assess need for HCQ post-stabilization.
+

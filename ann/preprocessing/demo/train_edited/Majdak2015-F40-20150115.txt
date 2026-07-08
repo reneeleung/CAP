@@ -1,0 +1,38 @@
+BP 169/105, HR 72,afebrile, O2 sat 99%
+
+Acute dysarthria + L facial weakness + L hemineglect + L hemiparesis (grade 3)
+
+Prior Tx Response:
+IV rt-PA ×1 at ED (60min post-symptom onset)
+NIHSS ↓14→15 post-thrombolysis (minimal motor improvement)
+No hemorrhage on 24h CT
+Prior stroke/TIA, HTN, thrombocytopenia, smoking, 1st miscarriage in first trimester
+Family Hx: Maternal thromboembolism
+current Meds: ASA, ACEi, iron
+
+PE:
+R gaze deviation, L UMN facial weakness, L hemineglect
+L hemiparesis (UL/LL grade 3)
+No Malar rash, synovitis, oral ulcers, pericardial rub
+
+
+Creat↑ (acute), LFTs↑, ESR↑, ANA+, dsDNA+, anti-SSA/SSB+, LAC+, aCL IgG+, C3/C4 nl, Hypercoag: Protein C/S, ATIII, Factor V/II nl
+
+Imaging:
+CT 24h post-rtPA: R MCA territory infarct
+MRA: R MCA M1/M2 narrowing ↓flow (suggestive vasculitis)
+Cardiac: TEE/Holter nl (no embolic source)
+
+
+Active SLE flare with:
+Neuropsychiatric lupus (R MCA infarct)
+Secondary APS (LAC+, aCL IgG+)
+Cerebral vasculitis (MRA stenosis)
+
+Management Plan:
+
+Immunosuppression:
+Start Prednisone 1mg/kg/day
+Add HCQ 200mg BID
+Warfarin (INR 2-3) (lifelong for APS)
+

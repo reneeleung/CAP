@@ -1,0 +1,67 @@
+{
+  "entityTypes": [
+    "Time", 
+    "Seizure", 
+    "Psychosis", 
+    "Organic_brain_syndrome",
+    "Visual_disturbance", 
+    "Cranial_nerve_disorder",
+    "Lupus_headache",
+    "CVA",
+    "Vasculitis",
+    "Arthritis",
+    "Myositis",
+    "Urinary_casts",
+    "Hematuria",
+    "Proteinuria",
+    "Pyuria",
+    "Rash",
+    "Alopecia",
+    "Mucosal_ulcers",
+    "Pleurisy",
+    "Pericarditis",
+    "Low_complement",
+    "Increased_DNA_binding",
+    "Fever",
+    "Thrombocytopenia",
+    "Leukopenia"
+  ],
+  "eventTypes": [
+    "Value", 
+    "Unit", 
+    "Symptoms_Signs",
+    "Paraclinical_tests",
+    "Exclusions",
+    "History",
+    "Treatment_response",
+    "Intention_to_treat"
+  ],
+  "attributeTypes": {
+    "SLEDAI_criteria": {
+      "yes": "criteria_fulfilled",
+      "negation": "criteria_unfulfilled_negation",
+      "no": "criteria_unfulfilled_diagnostic",
+      "uncertain": "criteria_uncertain"
+    },
+    "time_nature": {
+      "within_10days": "within_10days",
+      "11_to_30days": "11_to_30days",
+      "30days_ago": "30days_ago",
+      "time_uncertain": "time_uncertain"
+    },
+    "special_entity": {
+      "None": "",
+      "special_entity_paraclinical_tests_occurred": "special_entity_paraclinical_tests_occurred",
+      "special_entity_symptoms_signs_occurred": "special_entity_symptoms_signs_occurred"
+    },
+    "nature_of_intention_to_treat": {
+      "None": "",
+      "treat_escalated": "treat_escalated",
+      "wait_and_see": "wait_and_see",
+      "treat_de_escalate": "treat_de_escalate"
+    }
+  },
+  "entityDefaultAttributes": {
+      "Time": ["time_nature: within_10days"]
+  }
+}

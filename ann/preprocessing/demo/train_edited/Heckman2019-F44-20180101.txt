@@ -1,0 +1,37 @@
+Pt c/o acute painless vision loss OD ×4 days. Hx SLE, ESRD s/p failed renal transplant (lupus nephritis). No rash/arthralgia. Fatigue + photophobia preceded vision loss.
+
+PE
+Neuro-ophthalmic OD:
+NLP vision, 2+ RAPD
+4+ optic disc swelling, diffuse pallor
+1+ venous tortuosity (no hemorrhage/exudates)
+OS: 20/25, normal exam
+No active rash/arthritis/serositis
+
+Labs:
+ESR 61↑ mm/hr, ANA >12↑ U, dsDNA 294↑ IU/mL
+Anti-Sm >8↑ U, APL IgG 20.9↑ GPL (normal <10)
+C3/C4 nl
+
+Imaging:
+CT head/orbits: No mass/abscess/compression
+Infectious: All negative (no fever/leukocytosis)
+
+Impression
+Active SLE flare: Unilateral ischemic optic neuropathy OD (disc swelling + NLP) + serologic activity (↑dsDNA, anti-Sm, APL).
+
+DDx:
+MS excluded (no demyelination on CT, no neuro symptoms)
+Infectious neuroretinitis ruled out (neg labs)
+Toxic optic neuropathy excluded (normal tox screen)
+
+Management Plan
+Pulse therapy: IV dexamethasone 250mg q6h ×3d → oral prednisone 80mg OD taper over 3w
+APL management:
+Start HCQ 400mg OD (thromboprophylaxis)
+Hold anticoagulation (thrombocytopenia risk)
+Monitoring:
+Visual acuity q24h (initial rapid improvement: HM → 20/200)
+Repeat APL titers post-steroids
+F/U: Ophthalmology daily during pulse; Rheum in 1wk.
+

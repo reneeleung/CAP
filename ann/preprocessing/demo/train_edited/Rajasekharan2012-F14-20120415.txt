@@ -1,0 +1,32 @@
+BP 110/70, HR 98, Temp 38.4°C, RR 16
+
+bilateral throbbing hemicranial headache×4 weeks—worse on standing+ transient vision blackouts (5min episodes,↑on sitting/standing). no diplopia,no associated dysuria, loose stools, throat pain, earache, cough or dyspnoea.
+
+Prior Tx: Acetazolamide ×1wk → somnolence (d/c'd). Mannitol/glycerin gave partial relief.
+
+PE:
+Bilateral papilledema+exudates, 
+abducens weakness
+Annular purpuric lesions (face/back) - new vasculitic rash.
+Symmetrical wrist/knee synovitis (mild effusions).
+submandibular and jugulodigastric nodes were
+enlarged 1.5 cm → FNAC
+
+Hb 8.3↓, WBC 3.0↓, ESR 134↑, C3<30↓, C4 9.76↓.
+Immunology: ANA+, dsDNA 300↑↑(nl<55), Coombs+ (DAT). APL/LA neg.
+urine albumin trace, no red blood cells or casts
+
+CSF: Opening pressure>300 mmH₂O↑↑, protein 14.4 nl, glucose 58 nl, 0 cells
+
+Brain MRI: Posterior scleral flattening+CSF herniation into sella
+MRV: No venous thrombosiS
+
+Impression:
+Idiopathic intracranial hypertension
+
+Management Plan:
+Intravenous mannitol, oral glycerine
+Methylprednisolone 1g IV ×3d → PSL 1mg/kg/day (45mg)
+Cyclophosphamide 50mg/day (renal protection d/t proteinuria)
+HCQ 200mg daily (start post-steroid)
+

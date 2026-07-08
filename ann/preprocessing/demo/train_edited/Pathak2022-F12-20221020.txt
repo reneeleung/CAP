@@ -1,0 +1,33 @@
+Vitals: BP elevated (above 95th percentile for age)
+
+Complaint: Acute psychosis (irrelevant speech, grandiose delusions, self-worship), anasarca, oliguria ×10d.
+PMH: SLE (dx 8y ago) + Lupus Nephritis (Class IV, biopsy-proven). Prior flares due to medication non-adherence. just discharged from prior flare 20d ago: IV steroids/albumin → discharged on Prednisolone 55mg/d + HCQ 400mg/d + MMF 1g/d.
+Current: Psychosis emerged 2w after high-dose steroid restart.
+
+PE
+Neuropsych: Agitated, grandiose delusions, pressured speech, poor sleep.
+Renal: Facial/periorbital edema, anasarca, bilateral pitting edema (limbs).
+No active synovitis. chronic rash
+CV/Resp/Abd: Unremarkable.
+
+Labs: Hb 8.8↓, WBC 3600↓, lymph 61↑; albumin 2.9↓; UPCR 0.3↑ (ref <0.25); CRP+; ANA/dsDNA+ (historical).
+Renal: Cr 1.1 (baseline), Urea 38.
+Infection: COVID-19 RT-PCR (-).
+Imaging: Echo (historical: mild pericardial effusion).
+
+Impression
+Steroid psychosis favored: Symptoms onset 2w after high-dose steroids , mood-dominant (not confusion/seizures)
+LN stable
+
+Management Plan
+Psychosis:
+Start olanzapine 5mg/d → ↑7.5mg/d
+Clonazepam 0.25mg BID ×3d
+Steroid taper: Reduce prednisolone by 10mg/wk 
+SLE/Lupus Nephritis:
+Continue HCQ 400mg/d + MMF 1g/d.
+PCP prophylaxis
+Follow-up:
+Repeat labs in 1wk (Cr, UPCR, CBC, C3/C4).
+Psychiatry + nephrology f/u ×1mo.20221020F
+

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>CAP</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <!-- First stylesheet -->
+  <link href="{{ url_for('static',filename='css/custom.css') }}" rel="stylesheet">
+
+  <!-- Favicons -->
+  <link src="../static/img/Original on transparent.png" rel="icon">
+  <link href="{{ url_for('static',filename='img/apple-touch-icon.png') }}" rel="apple-touch-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+  <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
+  <!-- CSS Files -->
+  <link href="{{ url_for('static',filename='vendor/aos/aos.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static',filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static',filename='vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static',filename='vendor/glightbox/css/glightbox.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static',filename='vendor/remixicon/remixicon.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static',filename='vendor/swiper/swiper-bundle.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static',filename='css/style.css') }}" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link href="{{ url_for('static',filename='css/style.css') }}" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.socket.io/4.5.1/socket.io.min.js"></script>
+
+  <script>
+    $(document).ready(function () {
+      // Initialize DataTable with CSV export button
+      var table = $('#resultsTable').DataTable({
+        dom: '<"top"Bf>lrtip',
+
+        buttons: [
+          {
+            extend: 'csvHtml5',
+            text: '<span class="fa fa-file-csv"></span> CSV',
+            className: 'btn btn-primary mb-3',
+            titleAttr: 'Export to CSV'
+          },
+          {
+            extend: 'copyHtml5',
+            text: '<span class="fa fa-copy"></span> Copy',
+            className: 'btn btn-primary mb-3',
+            titleAttr: 'Copy to clipboard'
+          },
+          {
+            extend: 'excelHtml5',
+            text: '<span class="fa fa-file-excel"></span> Excel',
+            className: 'btn btn-primary mb-3',
+            titleAttr: 'Export to Excel'
+          },
+          {
+            extend: 'pdfHtml5',
+            text: '<span class="fa fa-file-pdf"></span> PDF',
+            className: 'btn btn-primary mb-3',
+            titleAttr: 'Export to PDF'
+          },
+          {
+            extend: 'print',
+            text: '<span class="fa fa-print"></span> Print',
+            className: 'btn btn-primary mb-3',
+            titleAttr: 'Print'
+          }
+        ],
+        select: true,
+        lengthMenu: [10, 25, 50, 100], // Dropdown options for 'Show _n_ entries'
+        pageLength: 10 // Default number of rows to show per page
+      });
+    });
+
+  </script>
+</head>
+
+<body>
+  <!-- ======= Hero Section ======= -->
+    <div class="header">
+        <div class="main">
+            <div id="timer-container">
+                <div id="timer-display">00:00:00</div>
+                <div>
+                    <button id="start-timer" class="timer-btn" disabled>Start</button>
+                    <button id="pause-timer" class="timer-btn" disabled>Pause</button>
+                </div>
+            </div>
+
+            <!-- <label style="margin-bottom: 10px; font-size: x-large;">Welcome!</label> -->
+            <!-- Annotation mode selection -->
+            <div id="annotation-mode-container" style="margin-bottom: 10px;">
+                <label style="margin-right: 10px;">Annotation Mode:</label>
+                <button id="mode-general" class="mode-button active" style="margin-right: 5px;">Manual Annotation</button>
+                <button id="mode-al" class="mode-button">HITL Annotation</button>
+            </div>
+            
+            <!-- File selection -->
+            <div>
+                <button class="file-selection-btn" id="open-file-modal">Select File</button>
+            </div>
+            <!-- Modal -->
+            <div class="file-selection-modal" id="file-modalOverlay">
+                <div class="file-modal">
+                <button class="file-selection-close-btn" id="close-file-modal">&times;</button>
+                <h2>File Directory</h2>
+                <div id="current-dir">Current Directory: /</div>
+                <ul id="file-browser"></ul>
+                </div>
+            </div>
+            
+            <!-- Buttons -->
+            <div id="button-container">
+                <div class="button-container">
+                    <button class="al-button" id="startTraining" onclick="startTraining()">Start Training</button>
+                    <button class="al-button" id="resumeTraining" onclick="resumeTraining()">Resume Training</button>
+                    <button class="al-button" id="confirmPauseTraining">Pause Training</button>
+                </div>
+                <div class="button-container">
+                    <button onclick="resetAnnotations()">Reset Annotations</button>
+                    <button id="saveAnnotations">Save & Next</button>      
+                    <div id="progress-container">
+                        <div id="progress-bar">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-container" id="navigation-buttons">
+                <button id="prevButton">Save & Previous</button>
+                <button id="nextButton">Save & Next</button>
+            </div>
+        
+        </div>
+    </div>
+    <main class="main">
+        <div>
+            <p id="filename">Current File:</p>
+        </div>
+        <div class="switch-container">
+            <label class="switch">
+                <input type="checkbox" id="toggleAnnotations">
+                <span class="slider"></span>
+            </label>
+            <span>Show Full Annotations</span>
+        </div>
+        
+
+        <div id="toolbox-container">
+            <div id="toolbox-toggle" onclick="toggleToolbox()">⚙</div>
+            
+            <!-- Settings panel -->
+            <div id="settings-panel">
+                <h3>Customize Annotation Style</h3>
+                
+                <!-- Font size settings -->
+                <label for="fontSize">Word-Span Font Size:</label>
+                <br>
+                <input type="number" id="fontSize" min="10" max="50" value="13"> px
+                
+                <br><br>
+        
+                <!-- Background color settings -->
+                <label for="annotated_bgColor">Annotated Highlight Color:</label>
+                <br>
+                <input type="color" id="annotated_bgColor" value="#70a1ff"> 
+        
+                <br><br>
+        
+                <!-- Text color settings -->
+                <label for="annotated_textColor">Annotated Font Color:</label>
+                <br>
+                <input type="color" id="annotated_textColor" value="#ffffff"> 
+        
+                <br><br>
+        
+                <!-- Selection text background color -->
+                <label for="selectionBgColor">Selection BG Color:</label>
+                <br>
+                <input type="color" id="selectionBgColor" value="#af509f"> 
+
+                <br><br>
+
+                <!-- Selection text font color -->
+                <label for="selectionTextColor">Selection Font Color:</label>
+                <br>
+                <input type="color" id="selectionTextColor" value="#ffffff">
+        
+                <br><br>
+        
+                <button onclick="applyStyles()">Apply Changes</button>
+            </div>
+        </div>
+
+        <button id="toggle-notes">📝 Notes</button>
+        <div id="note-box">
+            <textarea id="note-textarea" placeholder="Jot down your notes here..."></textarea>
+            <button id="save-notes">💾 Save</button> <!-- New Save Button -->
+        </div>
+
+
+    <div id="textDisplay">
+        <!-- Left side: File content -->
+        <div id="fileContent">
+            No file uploaded yet.
+        </div>
+        
+        <!-- Right side: Relationship parent (includes toggle, container, and drag-to-resize area) -->
+        <div id="relationshipParent">
+            <!-- Toggle button, click to show/hide the relationship panel -->
+            <div id="relationship-toggle" onclick="toggleRelationshipPanel()">📌</div>
+            
+            <!-- Relationship panel (hidden by default), height depends on content, minimum height about 40px -->
+            <div id="relationship-container">
+            <div id="relationship-content">
+                <h3>Relationships</h3>
+                <ul id="relationship-list"></ul>
+            </div>
+            </div>
+            
+            <!-- Drag-to-resize area, located on the left side of parent -->
+            <div id="resizer"></div>
+  </div>
+    </div>
+
+    <!--<button id="saveAnnotations">Save Annotations</button>-->
+    <div id="notification" class="notification"></div>
+    <!--  Pop up window for selecting annotation -->
+
+    <!-- Modal Overlay and Modal Window (hidden by default) -->
+    <div id="modal-overlay"></div>
+    <div id="modal">
+        <h3>Select Annotation</h3>
+        <p id="modal-selected-annotation-text" style="display: flex; justify-content: center; margin-bottom: 3px;"></p>
+    
+        <!-- Modal content divided into three areas -->
+        <div id="modal-content" style="display: flex; justify-content: space-between;">
+            <!-- Entity area: always displayed -->
+            <div id="entity-area" class="modal-section">
+                <h4>Entity</h4>
+                <div>
+                    <input type="radio" name="entity" value="Location" id="entity-Location">
+                    <label for="entity-Location">Location</label>
+                </div>
+                <div>
+                    <input type="radio" name="entity" value="Person" id="entity-Person">
+                    <label for="entity-Person">Person</label>
+                </div>
+                <div>
+                    <input type="radio" name="entity" value="Organization" id="entity-Organization">
+                    <label for="entity-Organization">Organization</label>
+                </div>
+            </div>
+          
+            <div id="attribute-area" class="modal-section">
+                <h4>Attributes</h4>
+                <div>
+                    <input type="radio" name="attribute" value="Attribute 1" id="attribute-Attribute1">
+                    <label for="attribute-Attribute1">Attribute 1</label>
+                </div>
+                <div>
+                    <input type="radio" name="attribute" value="Attribute 2" id="attribute-Attribute2">
+                    <label for="attribute-Attribute2">Attribute 2</label>
+                </div>
+                <div>
+                    <input type="radio" name="attribute" value="Attribute 3" id="attribute-Attribute3">
+                    <label for="attribute-Attribute3">Attribute 3</label>
+                </div>
+            </div>
+
+            <div id="event-area" class="modal-section">
+                <h4>Event</h4>
+                <div>
+                    <input type="radio" name="event" value="Event 1" id="event-Event1">
+                    <label for="event-Event1">Event 1</label>
+                </div>
+                <div>
+                    <input type="radio" name="event" value="Event 2" id="event-Event2">
+                    <label for="event-Event2">Event 2</label>
+                </div>
+                <div>
+                    <input type="radio" name="event" value="Event 3" id="event-Event3">
+                    <label for="event-Event3">Event 3</label>
+                </div>
+            </div>
+        </div>
+      
+      <br>
+      <button id="saveSelection">Save</button>
+      <button id="cancelSelection">Cancel</button>
+    </div>
+    <!-- End of Annotation Section -->
+
+  </main><!-- End #main -->
+
+  <!-- ======= Footer ======= -->
+
+
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+      class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Vendor JS Files -->
+  <script src="{{ url_for('static',filename='vendor/purecounter/purecounter_vanilla.js') }}"></script>
+  <script src="{{ url_for('static',filename='vendor/aos/aos.js') }}"></script>
+  <script src="{{ url_for('static',filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static',filename='vendor/glightbox/js/glightbox.min.js') }}"></script>
+  <script src="{{ url_for('static',filename='vendor/isotope-layout/isotope.pkgd.min.js') }}"></script>
+  <script src="{{ url_for('static',filename='vendor/swiper/swiper-bundle.min.js') }}"></script>
+  <script src="{{ url_for('static',filename='vendor/php-email-form/validate.js') }}"></script>
+  
+  <!-- Template Main JS File -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.flash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+  <script src="{{ url_for('static',filename='js/app.js') }}"></script>
+</body>
+
+</html>

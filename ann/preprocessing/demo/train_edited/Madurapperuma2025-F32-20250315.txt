@@ -1,0 +1,34 @@
+Vitals: BP 112/78, HR 82, Temp 101°F
+
+c/o: Progressive bilateral vision loss ×2mo → BCVA 6/36 OU. Later: fever, fatigue, arthralgia, malar rash, oral ulcer, periorbital/ankle edema.
+Prior Tx Response: None initially (delayed Dx). After SLE Dx: IV MP pulse → rapid improvement in vision/systemic Sx.
+
+
+PE
+Dermatologic: Bilateral malar rash (sparing nasolabial folds).
+Mucocutaneous: Painless oral ulcer (hard palate).
+Edema: Mild periorbital + bilateral pitting ankle edema.
+Lymphadenopathy: Non-tender cervical nodes.
+Ocular: BCVA 6/36 OU; fundoscopy: CWS, arteriolar narrowing, venous segmentation, flame hemorrhages.
+MSK: Arthralgia (no synovitis).
+
+Labs: WBC 3.62↓×10³/µL, Hb 10.9↓ g/dL, Plt 138↓×10³/µL, ESR 88↑ mm/hr, UPCR 8.86↑ (nephrotic), ANA 1:2560↑ (nuclear), anti-dsDNA (+), C3 36↓ (65-190), C4 9↓ (14-40). aPL panel (-).
+
+Imaging: FFA → retinal vasculitis (occlusive arteriolitis/phlebitis).
+Biopsy: Renal - Class III LN.
+
+Impression
+Active SLE Flare: Retinal Vasculitis (bilateral) + Class III Lupus Nephritis + Hematologic (leukopenia/thrombocytopenia) + Mucocutaneous (malar rash/oral ulcer). 
+
+Management Plan
+Immunosuppression:
+IV Methylprednisolone 1g daily ×3d (completed).
+Oral Prednisolone 1mg/kg/day → slow taper (minimize relapse).
+MMF 2-3g/day (renal dosing) + HCQ 400mg daily (thromboprophylaxis).
+Renal: Start ACEi for proteinuria (UPCR 8.86).
+Ocular Monitoring:
+Monthly HCQ toxicity screening (retinal OCT/macular fields).
+Repeat FFA if vision plateaus.
+Labs: Weekly CBC/C3/C4/UPCR ×4wks; then monthly.
+Follow-up: Rheum/Nephro/Ophtho co-management. FU in 1-2wks.
+

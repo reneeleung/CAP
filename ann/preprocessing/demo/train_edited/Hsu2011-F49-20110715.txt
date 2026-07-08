@@ -1,0 +1,30 @@
+Patient Complaint: Acute behavioral change 2mo prior: insomnia, stress → Acute psychosis for 2wks (command auditory hallucination, persecutory delusions, grandiose/religious ideation) with irritability, poor sleep, non-adherence.
+
+PMH: Stable SLE x12yrs on HCQ 100mg daily (8yrs).
+No prior psych history. not on other med
+
+PE
+No active mucocutaneous, articular, or serositis findings.
+
+Labs (admission): CRP/ESR-, CBC/RFT/LFT nl; dsDNA/Anti-Sm: nl; aPL nl; C3/C4: nl.
+Imaging: Brain CT: no acute pathology.
+Urine: No proteinuria/hematuria.
+
+Impression
+SLE quite stable, no serologic activity (stable dsDNA/aPL/C3/C4).
+HCQ-induced acute psychosis (Naranjo scale: 5 = "probable").
+
+DDx:
+Primary psychotic disorder → no prior/family history.
+SLE CNS involvement → excluded by normal serologies/CT + chronic stable disease.
+
+Management Plan
+Discontinue HCQ immediately (likely trigger).
+Risperidone 2mg/day
+psych follow-up 1wk.
+SLE control: Transition to alternate DMARD (discuss azathioprine/MTX with rheum).
+Monitoring:
+Repeat SLE serologies (C3/dsDNA) in 4wks.
+Annual retinal exam (HCQ toxicity risk).
+Rheum follow-up 4wks.
+

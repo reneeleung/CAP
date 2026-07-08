@@ -1,0 +1,39 @@
+Note Body:
+BP 140/77, HR 107, Temp 36.9°C, RR -, O₂ sat -
+
+Rapid Cr↑ (60→176μmol/L in 3mo) + fatigue, 15lb weight loss, night sweats.
+Prior Tx:
+Comorbidities: CAD s/p CABG, HTN, T2DM.
+No prior SLE dx: Atypical presentation (no malar rash/arthritis).
+PE
+Derm: Livedo reticularis (chest) + non-blanching rash (back).
+Renal: No edema/peripheral stigmata.
+MSK: No synovitis/JPS.
+Constit: Cachectic (chronic weight loss).
+Paraclinical Tests
+Labs:
+Renal: Cr 176μmol/L↑ (baseline 60), UACR 305mg/mmol↑
+Immuno: ANA+ 1:160, C3 0.18g/L↓, C4 0.03g/L↓, anti-La+
+Hematology: Pancytopenia (WBC/PLT/Hgb ↓)
+Urine: Heme-granular casts, urine WBC >50/μL, urine RBC >50/μL, 
+Biopsy:
+Renal: Focal proliferative GN (Class III LN)
+IF: "Full-house" (IgG/IgA/IgM/C1q/C3/λ+)
+Histo: 2 cellular crescents, mild IFTA
+Skin: No lupus-specific features
+Impression
+Active SLE Flare with Lupus Nephritis (Class III):
+Rapidly progressive AKI
+
+
+DDx:
+Vasculitis: Ruled out by negative ANCA/anti-GBM.
+Cryoglobulinemia: Excluded by negative RF/serum EP.
+Diabetic Nephropathy: Unlikely given rapid Cr↑ + casts.
+Paraneoplastic: No M-spike/weight loss explained by SLE.
+Management Plan
+Induction:
+IV Methylprednisolone 1g x3d → Pred 1mg/kg/day
+Cyclophosphamide 500mg/m² IV→MMF Maintenance
+HD Initiation
+

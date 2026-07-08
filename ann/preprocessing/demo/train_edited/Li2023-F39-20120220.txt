@@ -1,0 +1,30 @@
+BP 132/82
+Pt c/o acute memory loss ×3d – awoke repeatedly asking family for current time, unable recall events of admission day. Symptoms partially improved after rest but persistent amnesia for onset period. Denied HA, visual changes, limb numbness/swallowing issues.
+
+PMH: HTN ×3y (controlled). No prior rash/arthralgia.
+Prior Tx Response: Started aspirin + dipyridamole at OSH neuro department → memory partially improved but persistent gaps.
+
+PE:
+Alert & oriented, fluent speech. Intact cognition (calc/orientation/memory). CN II-XII intact (symmetric face, midline tongue).
+No synovitis/deformity.
+No malar/discoid rash, oral ulcers, alopecia.
+Clear lungs, no murmurs/rubs.
+Soft Abd, non-tender.
+
+Hb 107↓, PLT 100↓, ESR 53↑, CRP 21.86↑, ANA 1:3200↑, dsDNA+, anti-SSA+, anti-rRNP+, anti-histone+, 
+C3 0.28↓, IgG 20.5↑, U-prot (+), Alb 31.8↓
+24hUP:228.6 mg/24 h (urine volume: 1.8 L).
+
+Brain MRI (adm): Acute infarcts R frontal lobe/semioval center (DWI+)
+MRA/PWI: No large vessel stenosis/CBF deficits
+Other: Echo/TCD/carotid US nl.
+Neuropsychiatric (NPSLE): Acute memory loss + DWI-confirmed infarcts, Anemia/thrombocytopenia
+
+
+Management Plan
+Methylprednisolone IV 40mg daily ×7d → convert to prednisone 0.5mg/kg/day
+Add HCQ 200mg BID
+Start MMF 1000mg BID (renal/neuro protection)
+Continue aspirin 81mg daily(secondary stroke prevention)
+D/C dipyridamole
+

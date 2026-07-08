@@ -1,0 +1,36 @@
+HR 120, RR ↑, O₂ sat 92% (on 80% FiO₂)
+
+Acute dyspnea + orthopnea, bilateral leg edema, refractory pulmonary edema (unresponsive to IV diuretics).
+previos try High-dose furosemide (250mg q3h) + ethacrynic acid/metolazone → minimal urine output (70mL/6h).
+Arthritis/Rash: Naproxen + topical steroids → rash resolved but arthritis persisted.
+
+PE
+S3 gallop, JVD ↑
+Bilateral crackles, accessory muscle use
+Resolved lower leg rash
+Sensory polyneuropathy (baseline)
+
+
+Labs:
+Cr 164μmol/L↑ → 560μmol/L↑
+24h UP 2.5, WBC 3+, RBC 2+，heme-granular casts, RBC casts,
+ANA+ 1:1280 (speckled), anti-dsDNA+ (19.4 ELISA U↑), C3 0.6g/L↓, C4 <0.05g/L↓, RF+ 1:640, cryoglobulins+, anti-SSA/SSB+
+
+Echo: LVEF 25-28% (global hypokinesis) 
+Bx Light: Diffuse proliferative GN (Class IV LN) with crescents/fibrinoid necrosis
+EM: Massive subendothelial deposits IF: IgG/IgM/IgA/C3+ (full-house)
+
+Dx
+Lupus myocarditis, Class IV LN
+
+Management Plan
+→ICU
+Methylprednisolone 750mg IV ×3d → Pred 60mg PO daily
+Cyclophosphamide 1g IV monthly 
+Hydroxychloroquine 200mg BID
+Lisinopril 5mg daily
+
+Monitoring:
+Cardiac: Repeat echo at 1mo (document EF recovery)
+Renal: Cr; UACR q3mo
+

@@ -1,0 +1,35 @@
+Acute R leg weakness (new) + headache + R thigh rash
+
+had R MCA stroke ×1mo ago → L hemiparesis
+On warfarin/ASA (INR 1.39 subtherapeutic)
+Steroids/azathioprine ×10y (inadequate control)
+
+PMH: SLE ×10y, HTN, T2DM
+current on Methylprednisolone 8mg daily, azathioprine 50mg QOD, warfarin 5mg, ASA 100mg
+
+PE:
+L hemiparesis (UL/LL 3/5)
+Derm: Rash R thigh
+No synovitis, cognitive deficits
+
+
+ESR 87↑, ANA+ 1:640↑, dsDNA 278↑↑ (<92.6)
+β2GPI-IgG >160↑↑, aCL IgG >160↑↑
+C3 89↓ (90-180), C4 <6.4↓↓,
+Coag: Protein S 61.9↓ (63.5-149%)
+
+MRI D1: Acute R MCA cortical infarcts
+
+
+Neuropsychiatric lupus (recurrent MCA/ACA infarcts)
+Secondary APS
+
+
+Plan:
+↑ Methylprednisolone to 20mg daily (after pulse taper)
+Add HCQ 200mg BID (previously missing)
+Hold azathioprine (ineffective)
+Anticoagulation:
+D/C warfarin (hemorrhagic transformation)
+Continue ASA 100mg daily
+

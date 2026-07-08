@@ -1,0 +1,28 @@
+Vitals:BP 80/44↓, HR 138↑, T 38.7°C↑, RR 28↑, O₂ sat ↓ 
+Complaint & History
+CC: SOB at rest, fever, weakness ×5d
+PMH: SLE s/p pericarditis + pericardiocentesis 2y ago. Baseline Tx: Mycophenolate sodium + methylprednisolone. G3P2, underweight (BMI 15.76).
+Prior Tx Response: Worsened on current immunosuppression → massive pericardial effusion, RV failure, pulmonary edema. Pregnancy termination + sterilization performed due to maternal instability and teratogenic risks of escalated therapy (cyclophosphamide/MMF contraindicated).
+PE
+Cardiopulm: Tachycardic, hypotension, bilateral basal crackles (pulmonary edema), heart murmur.
+No active malar rash, synovitis, or nephritis signs.
+Paraclinical
+Labs: CRP 6.60 mg/dL↑, BNP 6633 pg/mL↑, Alb 2.9 g/dL↓, UPCR ≥300 mg/g↑, C4 8 mg/dL↓.
+Imaging: TTE: Massive pericardial effusion, RV failure, severe TR, PH, mild MR. CXR: Pericardial effusion + pulmonary edema.
+ECG: Not reported (tachycardia inferred).
+Impression
+Active SLE flare with recurrent lupus pericarditis → massive effusion/cardiac tamponade physiology, RV failure, pulmonary hypertension, nephritis (proteinuria/hypoalbuminemia), and inflammatory markers ↑.
+DDx: Bacterial pericarditis excluded (no leukocytosis, afebrile post-steroids); viral pericarditis unlikely (no recent URI, SLE history).
+Management Plan
+Meds:
+Methylprednisolone 62.5 mg PO daily (post-pulse)
+Carvedilol 12.5 mg BID (HF management)
+Furosemide 80 mg daily (edema)
+Sildenafil 20 mg TID + Beraprost 20μg TID (PH)
+Prophylaxis: PCP prophylaxis (pending CD4; steroid dose), calcium/vit D (chronic steroid use).
+Monitoring:
+Repeat TTE in 1 week (effusion resolution).
+CRP, BNP, renal function weekly ×4.
+Rheumatology f/u ≤7d.
+Counseling: Confirmed sterilization; avoid pregnancy.
+
