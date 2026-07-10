@@ -1,9 +1,9 @@
 ## Clinical Annotation Platform (CAP)
 
-A Human-in-the-Loop (HITL) framework for clinical text annotation utilizing dynamic active learning.
+A Human-in-the-Loop (HITL) framework for clinical text annotation utilizing [dynamic active learning](https://pubmed.ncbi.nlm.nih.gov/39081233/).
 
 ### Preprocess
-First, place all notes (`.txt`) under `preprocessing/[data_dir_name]/train_edited/`. For demonstration purposes, 30 sample notes are under `preprocessing/sample/train_edited/` (these notes were extracted from the SLE dataset on [Zenodo](https://zenodo.org/records/20042444)).
+First, place all notes (`.txt`) under `preprocessing/[data_dir_name]/train_edited/`. For demonstration purposes, 30 sample notes are under `preprocessing/demo/train_edited/` (these notes were extracted from the SLE dataset on [Zenodo](https://zenodo.org/records/20042444)).
 
 **Token limit:** CAP uses BioClinicalBERT, which has a maximum input length of 512 tokens. All demo files are under this limit.
 
@@ -22,7 +22,7 @@ python app.py
 #### Customizing the cold start
 By default, CAP selects a small number of initial documents for annotation before making pre-annotations.
 
-- For faster initial predictions, download a finetuned model and place it in `models`. For this demo, download from (here)[https://huggingface.co/reneeleung/sledai-annotation/blob/main/model_pseudo_512.pth].
+- For faster initial predictions, download a finetuned model and place it in `models`. For this demo, download from [here](https://huggingface.co/reneeleung/sledai-annotation/blob/main/model_pseudo_512.pth).
 
 - If you prefer to start without a finetuned model, increase the number of cold start samples by adjusting `initial_prop` in `app.py` (e.g. set to `0.3` for ~30% of the dataset).
 
