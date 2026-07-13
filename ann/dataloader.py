@@ -2,98 +2,85 @@ from torch.utils.data import Dataset
 import numpy as np
 import torch
 import json
+from config import ATTRIBUTE_LIST
 
-class test_dataset(Dataset):
-    def __init__(self, dataframe, tokenizer, max_len, labels_to_ids,
-                 time_labels_to_ids, criteria_labels_to_ids, special_labels_to_ids, intention_labels_to_ids,
-                 time_nature, criteria, special_entity, intention):
-        self.len = len(dataframe)
+class BaseDataset(Dataset):
+    """Base dataset class with dynamic attribute handling."""
+    
+    def __init__(self, dataframe, tokenizer, max_len, labels_to_ids, attribute_mappings):
         self.data = dataframe
         self.tokenizer = tokenizer
         self.max_len = max_len
         self.labels_to_ids = labels_to_ids
-        self.time_labels_to_ids = time_labels_to_ids
-        self.criteria_labels_to_ids = criteria_labels_to_ids
-        self.special_labels_to_ids = special_labels_to_ids
-        self.intention_labels_to_ids = intention_labels_to_ids
-        self.time_nature = time_nature
-        self.criteria = criteria
-        self.special_entity = special_entity
-        self.intention = intention
-
-    def __getitem__(self, index):
-        # Step 1: Get sentence and word-level entity labels
-        sentences = [token.replace('\u200b', '[ZWSP]') for token in self.data.text[index].strip().split()]
-        word_labels = self.data.tags[index].split(",")
-        # Get attribute string list, each token's attribute format should be "time|criteria|special|intention"
-        attr_str_list = self.data.attributes[index].split(",")
-
-        # Parse attribute string, generate 3 lists
-        time_labels = []
-        criteria_labels = []
-        special_labels = []
-        intention_labels = []
-        for attr in attr_str_list:
-            current_time_label = "O"
-            current_criteria_label = "O"
-            current_special_label = "O"
-            current_intention_label = "O"
-
-            parts = attr.split("|")
-
+        self.attribute_mappings = attribute_mappings
+        self.attribute_list = list(attribute_mappings.keys())
+        self.len = len(dataframe)
+    
+    def _align_labels(self, labels, sentences):
+        """Align label lists to sentence length."""
+        if len(labels) < len(sentences):
+            labels.extend(["O"] * (len(sentences) - len(labels)))
+        elif len(labels) > len(sentences):
+            labels = labels[:len(sentences)]
+        return labels
+    
+    def _parse_attribute_string(self, attr_str):
+        """Parse attribute string like 'time|criteria|special|intention' into a dict."""
+        result = {attr_name: "O" for attr_name in self.attribute_list}
+        if attr_str:
+            parts = attr_str.split("|")
             for part in parts:
-                if part in self.time_nature:
-                    current_time_label = part
-                elif part in self.criteria:
-                    current_criteria_label = part
-                elif part in self.special_entity:
-                    current_special_label = part
-                elif attr in self.intention:
-                    current_intention_label = attr
-            time_labels.append(current_time_label)
-            criteria_labels.append(current_criteria_label)
-            special_labels.append(current_special_label)
-            intention_labels.append(current_intention_label)
+                for attr_name in self.attribute_list:
+                    if part in self.attribute_mappings[attr_name]['values']:
+                        result[attr_name] = part
+        return result
+    
+    def _parse_attribute_list(self, attr_list):
+        """Parse attribute list (JSON format) into dict of lists."""
+        result = {attr_name: [] for attr_name in self.attribute_list}
         
-        # Ensure lengths are consistent
-        if len(word_labels) != len(sentences):
-            if len(word_labels) < len(sentences):
-                word_labels.extend(["O"] * (len(sentences) - len(word_labels)))
-            else:
-                word_labels = word_labels[:len(sentences)]
-                
-        if len(time_labels) != len(sentences):
-            if len(time_labels) < len(sentences):
-                time_labels.extend(["O"] * (len(sentences) - len(time_labels)))
-            else:
-                time_labels = time_labels[:len(sentences)]
-                
-        if len(criteria_labels) != len(sentences):
-            if len(criteria_labels) < len(sentences):
-                criteria_labels.extend(["O"] * (len(sentences) - len(criteria_labels)))
-            else:
-                criteria_labels = criteria_labels[:len(sentences)]
-                
-        if len(special_labels) != len(sentences):
-            if len(special_labels) < len(sentences):
-                special_labels.extend(["O"] * (len(sentences) - len(special_labels)))
-            else:
-                special_labels = special_labels[:len(sentences)]
-                
-        if len(intention_labels) != len(sentences):
-            if len(intention_labels) < len(sentences):
-                intention_labels.extend(["O"] * (len(sentences) - len(intention_labels)))
-            else:
-                intention_labels = intention_labels[:len(sentences)]
+        for token_attrs in attr_list:
+            if not token_attrs:
+                for attr_name in self.attribute_list:
+                    result[attr_name].append("O")
+                continue
+            
+            current_labels = {attr_name: "O" for attr_name in self.attribute_list}
+            for attr in token_attrs:
+                for attr_name in self.attribute_list:
+                    if attr in self.attribute_mappings[attr_name]['values']:
+                        current_labels[attr_name] = attr
+            
+            for attr_name in self.attribute_list:
+                result[attr_name].append(current_labels[attr_name])
         
-        # Convert string labels to indices
-        entity_labels_indices = [self.labels_to_ids[label] for label in word_labels]
-        time_labels_indices = [self.time_labels_to_ids[label] for label in time_labels]
-        criteria_labels_indices = [self.criteria_labels_to_ids[label] for label in criteria_labels]
-        special_labels_indices = [self.special_labels_to_ids[label] for label in special_labels]
-        intention_labels_indices = [self.intention_labels_to_ids[label] for label in intention_labels]
-
-        # Step 2: Encode the sentence using tokenizer
+        return result
+    
+    def _get_attribute_labels_from_strings(self, attr_str_list, sentences):
+        """Get attribute labels from string list format."""
+        attr_labels = {attr_name: [] for attr_name in self.attribute_list}
+        
+        for attr_str in attr_str_list:
+            parsed = self._parse_attribute_string(attr_str)
+            for attr_name in self.attribute_list:
+                attr_labels[attr_name].append(parsed[attr_name])
+        
+        for attr_name in self.attribute_list:
+            attr_labels[attr_name] = self._align_labels(attr_labels[attr_name], sentences)
+        
+        return attr_labels
+    
+    def _get_attribute_labels_from_json(self, attr_list, sentences):
+        """Get attribute labels from JSON list format."""
+        attr_labels = self._parse_attribute_list(attr_list)
+        
+        for attr_name in self.attribute_list:
+            attr_labels[attr_name] = self._align_labels(attr_labels[attr_name], sentences)
+        
+        return attr_labels
+    
+    def _encode_and_align(self, sentences, entity_labels, attr_labels):
+        """Encode text and align all labels with tokenized sequence."""
         encoding = self.tokenizer(
             sentences,
             is_split_into_words=True,
@@ -102,179 +89,147 @@ class test_dataset(Dataset):
             truncation=True,
             max_length=self.max_len
         )
-
-        # Step 3: Align labels
-        # Create arrays with the same length as token count for entity, time, criteria, special, intention respectively, initial values set to -100 (ignore index)
+        
+        # Convert string labels to indices
+        entity_indices = [self.labels_to_ids[label] for label in entity_labels]
+        attr_indices = {}
+        for attr_name in self.attribute_list:
+            to_ids = self.attribute_mappings[attr_name]['to_ids']
+            attr_indices[attr_name] = [to_ids[label] for label in attr_labels[attr_name]]
+        
+        # Initialize encoded labels with -100 (ignore index)
         encoded_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
-        encoded_time_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
-        encoded_criteria_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
-        encoded_special_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
-        encoded_intention_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
-
-        i = 0  # Used to iterate over original token-level labels
+        encoded_attr_labels = {
+            attr_name: np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
+            for attr_name in self.attribute_list
+        }
+        
+        # Align labels with tokenized sequence (only first subword gets label)
+        i = 0
         for idx, mapping in enumerate(encoding["offset_mapping"]):
-            # Only assign label to the first subword
             if mapping[0] == 0 and mapping[1] != 0:
-                encoded_labels[idx] = entity_labels_indices[i]
-                encoded_time_labels[idx] = time_labels_indices[i]
-                encoded_criteria_labels[idx] = criteria_labels_indices[i]
-                encoded_special_labels[idx] = special_labels_indices[i]
-                encoded_intention_labels[idx] = intention_labels_indices[i]
+                encoded_labels[idx] = entity_indices[i]
+                for attr_name in self.attribute_list:
+                    encoded_attr_labels[attr_name][idx] = attr_indices[attr_name][i]
                 i += 1
-
-        # Step 4: Convert to PyTorch tensor and return dictionary
+        
+        return encoding, encoded_labels, encoded_attr_labels
+    
+    def _create_item(self, encoding, encoded_labels, encoded_attr_labels):
+        """Create the final item dictionary."""
         item = {key: torch.LongTensor(val) for key, val in encoding.items()}
         item['labels'] = torch.LongTensor(encoded_labels)
-        item['time_labels'] = torch.LongTensor(encoded_time_labels)
-        item['criteria_labels'] = torch.LongTensor(encoded_criteria_labels)
-        item['special_labels'] = torch.LongTensor(encoded_special_labels)
-        item['intention_labels'] = torch.LongTensor(encoded_intention_labels)
-
+        
+        for attr_name in self.attribute_list:
+            item[f'{attr_name}_labels'] = torch.LongTensor(encoded_attr_labels[attr_name])
+        
         return item
-
+    
     def __len__(self):
         return self.len
 
-class train_dataset(Dataset):
-    def __init__(self, dataframe, tokenizer, max_len, labels_to_ids,
-                 time_labels_to_ids, criteria_labels_to_ids, special_labels_to_ids, intention_labels_to_ids,
-                 time_nature, criteria, special_entity, intention):
-        self.len = len(dataframe)
+
+class train_dataset(BaseDataset):
+    """Training dataset - uses annotated_entities and annotated_attributes (JSON format)."""
+    
+    def __init__(self, dataframe, tokenizer, max_len, labels_to_ids, **attribute_mappings):
+        """
+        Args:
+            dataframe: pandas DataFrame with 'text', 'annotated_entities', 'annotated_attributes' columns
+            tokenizer: HuggingFace tokenizer
+            max_len: maximum sequence length
+            labels_to_ids: entity label mapping
+            **attribute_mappings: keyword arguments for each attribute
+                Example: time_labels_to_ids=time_to_ids, time=time_values, 
+                         criteria_labels_to_ids=criteria_to_ids, criteria=criteria_values, etc.
+        """
+        attr_mappings = {}
+        for attr_name in ATTRIBUTE_LIST:
+            to_ids_key = f'{attr_name}_labels_to_ids'
+            values_key = attr_name
+            if to_ids_key in attribute_mappings and values_key in attribute_mappings:
+                attr_mappings[attr_name] = {
+                    'to_ids': attribute_mappings[to_ids_key],
+                    'values': attribute_mappings[values_key]
+                }
+        
+        super().__init__(dataframe, tokenizer, max_len, labels_to_ids, attr_mappings)
+    
+    def __getitem__(self, index):
+        sentences = self.data.text[index].strip().split()
+        
+        # Get entity labels from annotated_entities
+        word_labels = self.data.annotated_entities[index].split(",")
+        word_labels = self._align_labels(word_labels, sentences)
+        
+        # Get attribute labels from annotated_attributes (JSON format)
+        attr_list = json.loads(self.data.annotated_attributes[index])
+        attr_labels = self._get_attribute_labels_from_json(attr_list, sentences)
+        
+        # Encode and align
+        encoding, encoded_labels, encoded_attr_labels = self._encode_and_align(
+            sentences, word_labels, attr_labels
+        )
+        
+        return self._create_item(encoding, encoded_labels, encoded_attr_labels)
+
+
+class test_dataset(BaseDataset):
+    """Test dataset - uses tags and attributes (string format)."""
+    
+    def __init__(self, dataframe, tokenizer, max_len, labels_to_ids, **attribute_mappings):
+        """
+        Args:
+            dataframe: pandas DataFrame with 'text', 'tags', 'attributes' columns
+            tokenizer: HuggingFace tokenizer
+            max_len: maximum sequence length
+            labels_to_ids: entity label mapping
+            **attribute_mappings: keyword arguments for each attribute
+                Example: time_labels_to_ids=time_to_ids, time=time_values, 
+                         criteria_labels_to_ids=criteria_to_ids, criteria=criteria_values, etc.
+        """
+        attr_mappings = {}
+        for attr_name in ATTRIBUTE_LIST:
+            to_ids_key = f'{attr_name}_labels_to_ids'
+            values_key = attr_name
+            if to_ids_key in attribute_mappings and values_key in attribute_mappings:
+                attr_mappings[attr_name] = {
+                    'to_ids': attribute_mappings[to_ids_key],
+                    'values': attribute_mappings[values_key]
+                }
+        
+        super().__init__(dataframe, tokenizer, max_len, labels_to_ids, attr_mappings)
+    
+    def __getitem__(self, index):
+        sentences = self.data.text[index].strip().split()
+        
+        # Get entity labels from tags
+        word_labels = self.data.tags[index].split(",")
+        word_labels = self._align_labels(word_labels, sentences)
+        
+        # Get attribute labels from attributes (string format)
+        attr_str_list = self.data.attributes[index].split(",")
+        attr_labels = self._get_attribute_labels_from_strings(attr_str_list, sentences)
+        
+        # Encode and align
+        encoding, encoded_labels, encoded_attr_labels = self._encode_and_align(
+            sentences, word_labels, attr_labels
+        )
+        
+        return self._create_item(encoding, encoded_labels, encoded_attr_labels)
+
+
+class eval_dataset(Dataset):
+    """Evaluation dataset - no labels needed."""
+    
+    def __init__(self, dataframe, tokenizer, max_len):
         self.data = dataframe
         self.tokenizer = tokenizer
         self.max_len = max_len
-        self.labels_to_ids = labels_to_ids
-        self.time_labels_to_ids = time_labels_to_ids
-        self.criteria_labels_to_ids = criteria_labels_to_ids
-        self.special_labels_to_ids = special_labels_to_ids
-        self.intention_labels_to_ids = intention_labels_to_ids
-        self.time_nature = time_nature
-        self.criteria = criteria
-        self.special_entity = special_entity
-        self.intention = intention
+        self.len = len(dataframe)
 
     def __getitem__(self, index):
         sentences = self.data.text[index].strip().split()
-        word_labels = self.data.annotated_entities[index].split(",")
-        attr_list = json.loads(self.data.annotated_attributes[index])
-
-        time_labels = []
-        criteria_labels = []
-        special_labels = []
-        intention_labels = []
-        for token_attrs in attr_list:
-            if not token_attrs:
-                time_labels.append("O")
-                criteria_labels.append("O")
-                special_labels.append("O")
-                intention_labels.append("O")
-                continue
-            else:
-                current_time_label = "O"
-                current_criteria_label = "O"
-                current_special_label = "O"
-                current_intention_label = "O"
-
-            for attr in token_attrs:
-                if attr in self.time_nature:
-                    current_time_label = attr
-                elif attr in self.criteria:
-                    current_criteria_label = attr
-                elif attr in self.special_entity:
-                    current_special_label = attr
-                elif attr in self.intention:
-                    current_intention_label = attr
-            time_labels.append(current_time_label)
-            criteria_labels.append(current_criteria_label)
-            special_labels.append(current_special_label)
-            intention_labels.append(current_intention_label)
-            
-        if len(word_labels) != len(sentences):
-            if len(word_labels) < len(sentences):
-                word_labels.extend(["O"] * (len(sentences) - len(word_labels)))
-            else:
-                word_labels = word_labels[:len(sentences)]
-                
-        if len(time_labels) != len(sentences):
-            if len(time_labels) < len(sentences):
-                time_labels.extend(["O"] * (len(sentences) - len(time_labels)))
-            else:
-                time_labels = time_labels[:len(sentences)]
-                
-        if len(criteria_labels) != len(sentences):
-            if len(criteria_labels) < len(sentences):
-                criteria_labels.extend(["O"] * (len(sentences) - len(criteria_labels)))
-            else:
-                criteria_labels = criteria_labels[:len(sentences)]
-                
-        if len(special_labels) != len(sentences):
-            if len(special_labels) < len(sentences):
-                special_labels.extend(["O"] * (len(sentences) - len(special_labels)))
-            else:
-                special_labels = special_labels[:len(sentences)]
-                
-        if len(intention_labels) != len(sentences):
-            if len(intention_labels) < len(sentences):
-                intention_labels.extend(["O"] * (len(sentences) - len(intention_labels)))
-            else:
-                intention_labels = intention_labels[:len(sentences)]
-            
-        entity_labels_indices = [self.labels_to_ids[label] for label in word_labels]
-        time_labels_indices = [self.time_labels_to_ids[label] for label in time_labels]
-        criteria_labels_indices = [self.criteria_labels_to_ids[label] for label in criteria_labels]
-        special_labels_indices = [self.special_labels_to_ids[label] for label in special_labels]
-        intention_labels_indices = [self.intention_labels_to_ids[label] for label in intention_labels]
-
-        encoding = self.tokenizer(
-            sentences,
-            is_split_into_words=True,
-            return_offsets_mapping=True,
-            padding='max_length',
-            truncation=True,
-            max_length=self.max_len
-        )
-
-        encoded_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
-        encoded_time_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
-        encoded_criteria_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
-        encoded_special_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
-        encoded_intention_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
-
-        i = 0
-        for idx, mapping in enumerate(encoding["offset_mapping"]):
-            if mapping[0] == 0 and mapping[1] != 0:
-                encoded_labels[idx] = entity_labels_indices[i]
-                encoded_time_labels[idx] = time_labels_indices[i]
-                encoded_criteria_labels[idx] = criteria_labels_indices[i]
-                encoded_special_labels[idx] = special_labels_indices[i]
-                encoded_intention_labels[idx] = intention_labels_indices[i]
-                i += 1
-
-        item = {key: torch.LongTensor(val) for key, val in encoding.items()}
-        item['labels'] = torch.LongTensor(encoded_labels)
-        item['time_labels'] = torch.LongTensor(encoded_time_labels)
-        item['criteria_labels'] = torch.LongTensor(encoded_criteria_labels)
-        item['special_labels'] = torch.LongTensor(encoded_special_labels)
-        item['intention_labels'] = torch.LongTensor(encoded_intention_labels)
-
-        return item
-
-    def __len__(self):
-        return self.len
-
-class eval_dataset(Dataset):
-    def __init__(self, dataframe, tokenizer, max_len, 
-                 labels_to_ids=None, time_labels_to_ids=None, 
-                 criteria_labels_to_ids=None, special_labels_to_ids=None, intention_labels_to_ids=None):
-        self.data = dataframe
-        self.tokenizer = tokenizer
-        self.max_len = max_len
-        # Evaluation data does not contain labels, so ignore labels mapping here
-        self.len = len(dataframe)
-
-    def __getitem__(self, index):
-        # Only use text column
-        sentences = [token.replace('\u200b', '[ZWSP]') for token in self.data.text[index].strip().split()]
         encoding = self.tokenizer(
             sentences,
             is_split_into_words=True,
@@ -284,41 +239,23 @@ class eval_dataset(Dataset):
             max_length=self.max_len
         )
         
-        # Since evaluation data has no ground truth labels, generate dummy labels (-100 is ignore index)
-        # Generate dummy label list based on the number of tokens in the original sentence (i.e., number of words)
-        num_words = len(sentences)
-        dummy_entity_labels = [-100] * num_words
-        dummy_time_labels = [-100] * num_words
-        dummy_criteria_labels = [-100] * num_words
-        dummy_special_labels = [-100] * num_words
-        dummy_intention_labels = [-100] * num_words
-
+        # Dummy labels (-100 is ignore index)
+        dummy_labels = [-100] * len(sentences)
         encoded_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
-        encoded_time_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
-        encoded_criteria_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
-        encoded_special_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
-        encoded_intention_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
-
+        
         i = 0
         for idx, mapping in enumerate(encoding["offset_mapping"]):
             if mapping[0] == 0 and mapping[1] != 0:
-                encoded_labels[idx] = dummy_entity_labels[i]
-                encoded_time_labels[idx] = dummy_time_labels[i]
-                encoded_criteria_labels[idx] = dummy_criteria_labels[i]
-                encoded_special_labels[idx] = dummy_special_labels[i]
-                encoded_intention_labels[idx] = dummy_intention_labels[i]
+                encoded_labels[idx] = dummy_labels[i]
                 i += 1
 
         item = {key: torch.LongTensor(val) for key, val in encoding.items()}
         item['labels'] = torch.LongTensor(encoded_labels)
-        item['time_labels'] = torch.LongTensor(encoded_time_labels)
-        item['criteria_labels'] = torch.LongTensor(encoded_criteria_labels)
-        item['special_labels'] = torch.LongTensor(encoded_special_labels)
-        item['intention_labels'] = torch.LongTensor(encoded_intention_labels)
         return item
 
     def __len__(self):
         return self.len
+
 
 def pad_to_maxlen(input_list, maxlen, before, after, others):
     if len(input_list) <= (maxlen - 2):

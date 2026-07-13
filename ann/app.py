@@ -1,13 +1,10 @@
 from flask import Flask, render_template, request, jsonify, abort
 from flask_socketio import SocketIO, emit
 import json
-from reportprocessor import Processor
 import os
 import threading
 from timer import TimerStorage
 import torch
-
-processor = Processor()
 
 app = Flask(__name__)
 socketio = SocketIO(app)

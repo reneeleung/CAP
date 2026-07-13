@@ -7,8 +7,12 @@
 import re
 from word2number import w2n
 from collections import defaultdict
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import ATTRIBUTE_MAPPING, ATTRIBUTE_LIST
 
-max_sentence_length = 128
+max_sentence_length = 512
 
 def readTextFile(filename):
     # Open txt file, read text information
@@ -23,7 +27,7 @@ def readTextFile(filename):
         # Default sequence labels and target labels
         sequence_labels = ['NA' for i in range(0, len(words_array))]
         target_labels = ['O' for i in range(0, len(words_array))]
-        # New: attributes field, default is "O"
+        # Attributes field, default is "O" for each attribute
         attributes = ['O' for i in range(0, len(words_array))]
         line_dict.update({'words': words_array, 'sequences': sequence_labels,
                           'targets': target_labels, 'starts': starts, 'normwords': normwords,
@@ -167,63 +171,61 @@ def readEntities(t_lines, a_lines, e_lines, r_lines, text_info):
             print(f"Error processing attribute {attr_id}: {e}")
             continue
     
-    # 更新 text_info 中的標註
+    # Update text_info with annotations
     for line_dict in text_info:
-        # 確保每個 token 都有屬性列表
+        # Ensure each token has attributes list
         if not isinstance(line_dict['attributes'], list):
             line_dict['attributes'] = ['O'] * len(line_dict['words'])
         elif len(line_dict['attributes']) < len(line_dict['words']):
-            # 添加缺失的元素
+            # Add missing elements
             line_dict['attributes'].extend(['O'] * (len(line_dict['words']) - len(line_dict['attributes'])))
         
-        # 初始化新的屬性列表
+        # Initialize new attributes list
         new_attributes = []
         
-        # 遍歷每個 token
+        # Iterate through each token
         for i in range(len(line_dict['words'])):
             token_start = int(line_dict['starts'][i])
             token_end = token_start + len(line_dict['words'][i])
             
-            # 默認值
+            # Default values
             target_label = 'O'
-            time_attr = 'O'
-            criteria_attr = 'O'
-            special_attr = 'O'
-            intention_attr = 'O'
+            # Initialize attribute values with 'O'
+            attr_values = {attr_name: 'O' for attr_name in ATTRIBUTE_LIST}
             
-            # 檢查每個實體是否與當前 token 重疊
+            # Check if any entity overlaps with current token
             for entity_id, entity in entity_dict.items():
                 entity_start = entity['start']
                 entity_end = entity['end']
                 
-                # 檢查 token 是否與實體重疊
+                # Check if token overlaps with entity
                 if (token_start >= entity_start and token_start < entity_end) or \
                    (token_end > entity_start and token_end <= entity_end) or \
                    (token_start <= entity_start and token_end >= entity_end):
-                    print("Token start:" , token_start)
-                    print("Entity start:" , entity_start)
-                    print("Token end:" , token_end)
-                    print("Entity end:" , entity_end)
-                    # 設置B-I標籤
+                    print("Token start:", token_start)
+                    print("Entity start:", entity_start)
+                    print("Token end:", token_end)
+                    print("Entity end:", entity_end)
+                    # Set B-I label
                     if token_start == entity_start:
                         target_label = f"B-{entity['type']}"
                     else:
                         target_label = f"I-{entity['type']}"
                     
-                    # 獲取屬性值
+                    # Get attribute values using the full names from config
                     attributes = entity['attributes']
-                    time_attr = attributes.get('time_nature', 'O')
-                    criteria_attr = attributes.get('SLEDAI_criteria', 'O')
-                    special_attr = attributes.get('special_entity', 'O')
-                    intention_attr = attributes.get('intention', 'O')
+                    for attr_name in ATTRIBUTE_LIST:
+                        full_name = ATTRIBUTE_MAPPING[attr_name]
+                        attr_values[attr_name] = attributes.get(full_name, 'O')
                     
                     break
             
-            # 更新標籤
+            # Update labels
             line_dict['targets'][i] = target_label
-            new_attributes.append((time_attr, criteria_attr, special_attr, intention_attr))
+            # Store attributes as tuple in the order of ATTRIBUTE_LIST
+            new_attributes.append(tuple(attr_values[attr_name] for attr_name in ATTRIBUTE_LIST))
         
-        # 更新屬性列表
+        # Update attributes list
         line_dict['attributes'] = new_attributes
     
     return text_info, entity_dict
@@ -281,8 +283,8 @@ def makeSentences_internal(text_info, new_tok_counter, sent_len_counter, max_sen
             if i < len(line_dict['attributes']):
                 sentence['attributes'].append(line_dict['attributes'][i])
             else:
-                # If index out of bounds, use default value
-                sentence['attributes'].append("O")
+                # If index out of bounds, use default value (all 'O')
+                sentence['attributes'].append(tuple('O' for _ in ATTRIBUTE_LIST))
                 
             # increment sentence length and update counter
             sentence_length += 1
@@ -417,8 +419,10 @@ def modifyDict(line_dict, target_word, index):
         if len(line_dict['attributes']) <= index:
             line_dict['attributes'].extend(["O"] * (index + 1 - len(line_dict['attributes'])))
         
-        # Get current attribute value as default
-        default_attr = line_dict['attributes'][index] if index < len(line_dict['attributes']) else "O"
+        # Get current attribute value as default (tuple of 'O's)
+        default_attr = tuple('O' for _ in ATTRIBUTE_LIST)
+        if index < len(line_dict['attributes']):
+            default_attr = line_dict['attributes'][index]
         
         # Update attributes list
         line_dict['attributes'] = line_dict['attributes'][0:index] + \
@@ -426,7 +430,7 @@ def modifyDict(line_dict, target_word, index):
             line_dict['attributes'][index+1:]
     else:
         # If attributes doesn't exist, create and initialize it
-        line_dict['attributes'] = ["O"] * len(line_dict['words'])
+        line_dict['attributes'] = [tuple('O' for _ in ATTRIBUTE_LIST)] * len(line_dict['words'])
 
     return line_dict, targetLocation
 
@@ -669,4 +673,3 @@ def normWord(word):
         return newword
     else:
         return word
-    
