@@ -7,6 +7,7 @@ let selectedWords = [];
 let manuallySelectedWord = null;
 let first_prediction = 0
 // Global configuration file data
+let loadedConfigFolder = null;
 let annotationConfig = {};
 let styleConfig = {};
 let currentIndex = 0;
@@ -16,12 +17,14 @@ let tempDir = currentDir;
 let showAnnotations = false;
 let disablePauseTraining = true;
 
-// Load annotation_config.json
-function loadAnnotationConfig() {
-    return $.getJSON('/static/conf/annotation_config.json').done(function (data) {
-        annotationConfig = data;
-        initializeAnnotationOptions();
-    });
+// Load annotation_config.json from a specific directory
+function loadAnnotationConfig(dir) {
+    return $.getJSON(`/get_file/${encodeURIComponent(dir + '/annotation_config.json')}`)
+        .done(function (data) {
+            annotationConfig = data;
+            console.log('annotationConfig loaded:', annotationConfig);
+            buildAllAnnotationUI();
+        });
 }
 
 // Load and apply style_config.json
@@ -34,7 +37,15 @@ function loadStyleConfig() {
 
 // Load the contents of the specified directory
 function loadDirectory(dir) {
-    $.getJSON(`/list_directory?dir=${encodeURIComponent(dir)}`, function(data) {
+    $.getJSON(`/list_directory?dir=${encodeURIComponent(dir)}`, function (response) {
+        const data = response.items;
+        const hasConfig = response.has_annotation_config;
+    
+        if (hasConfig) {
+            loadAnnotationConfig(dir).then(() => {
+                console.log("Annotation config updated from", dir, annotationConfig);
+            });
+        }
         // Clear the directory list
         $('#file-browser').empty();
 
@@ -102,102 +113,114 @@ function loadDirectory(dir) {
     });
 }
 
-function initializeAnnotationOptions() {
-    // 1. Initialize Entity area
-    const entityContainer = document.getElementById("entity-area");
-    entityContainer.innerHTML = "<h4>Entity</h4>";
-    annotationConfig.entityTypes.forEach(type => {
+function buildAllAnnotationUI() {
+    buildEntityArea();
+    buildEventArea();
+    buildAttributeArea(document.getElementById("attribute-area"));
+    bindModalEvents();       // (re)attach change handlers
+    // Default-select the first event if any
+    const firstEvent = document.querySelector('input[name="event"]');
+    if (firstEvent) {
+        firstEvent.checked = true;
+        firstEvent.dispatchEvent(new Event("change"));
+    }
+}
+
+function buildEntityArea() {
+    const c = document.getElementById("entity-area");
+    c.innerHTML = "<h4>Entity</h4>";
+    (annotationConfig.entityTypes || []).forEach(type => {
         const div = document.createElement("div");
+        const display = entityDisplayName(type);
         div.innerHTML = `
             <input type="radio" name="entity" value="${type}" id="entity-${type}">
-            <label for="entity-${type}">${type}</label>
-        `;
-        entityContainer.appendChild(div);
+            <label for="entity-${type}">${display}</label>`;
+        c.appendChild(div);
     });
+}
 
-    // 2. Initialize Event area
-    const eventContainer = document.getElementById("event-area");
-    eventContainer.innerHTML = "<h4>Event</h4>";
-    annotationConfig.eventTypes.forEach(type => {
+function buildEventArea() {
+    const c = document.getElementById("event-area");
+    const types = annotationConfig.eventTypes || [];
+    if (types.length === 0) {
+        // Hide the whole Event section
+        c.style.display = "none";
+        c.innerHTML = "";
+        return;
+    }
+    c.style.display = "";
+    c.innerHTML = "<h4>Event</h4>";
+    types.forEach(type => {
+        const id = "event-" + type.replace(/\s+/g, '');
         const div = document.createElement("div");
-        const eventId = "event-" + type.replace(/\s+/g, '');
         div.innerHTML = `
-            <input type="radio" name="event" value="${type}" id="${eventId}">
-            <label for="${eventId}">${type}</label>
-        `;
-        eventContainer.appendChild(div);
+            <input type="radio" name="event" value="${type}" id="${id}">
+            <label for="${id}">${type}</label>`;
+        c.appendChild(div);
     });
+}
 
-    // 3. Initialize Attribute area (grouped by "colon prefix")
-    const attributeContainer = document.getElementById("attribute-area");
-    attributeContainer.innerHTML = "<h4>Attributes</h4>";
-
-    // 3.1 Create mapping of prefix → [values]
-    let attributeGroups = {};
-    Object.entries(annotationConfig.attributeTypes).forEach(([prefix, values]) => {
-        attributeGroups[prefix] = Object.keys(values);
-    });
-
-    // 3.3 Create one row per prefix (prefix label + multiple radios)
-    Object.keys(attributeGroups).forEach(prefix => {
+function buildAttributeArea(container) {
+    const attrTypes = annotationConfig.attributeTypes || {};
+    if (Object.keys(attrTypes).length === 0) {
+        container.style.display = "none";
+        container.innerHTML = "";
+        return;
+    }
+    container.style.display = "";
+    container.innerHTML = "<h4>Attributes</h4>";
+    Object.entries(attrTypes).forEach(([prefix, values]) => {
         const rowDiv = document.createElement("div");
         rowDiv.classList.add("attribute-row");
+        rowDiv.dataset.attributePrefix = prefix;
 
-        // Display prefix
         const prefixLabel = document.createElement("label");
         prefixLabel.classList.add("attr-prefix");
         prefixLabel.textContent = prefix + ":";
         rowDiv.appendChild(prefixLabel);
 
-        // Generate one radio for each value under this prefix
-        attributeGroups[prefix].forEach(value => {
-            // Avoid whitespace interference in id
-            const radioId = `attribute-${prefix}-${value || "none"}`.replace(/\s+/g, '');
+        Object.entries(values).forEach(([displayValue, mappedValue]) => {
+            // Use mappedValue as the radio value — guaranteed unique across groups
+            const radioId = `attribute-${prefix}-${mappedValue}`.replace(/\s+/g, '');
 
             const radio = document.createElement("input");
             radio.type = "radio";
-            // Use the same name for radios under the same prefix
-            radio.name = prefix;
-            radio.value = value;
+            radio.name = prefix;              // still group by prefix
+            radio.value = mappedValue;         // UNIQUE value
             radio.id = radioId;
+            radio.dataset.displayValue = displayValue;
+            radio.dataset.prefix = prefix;
 
-            // If prefix is special_entity, allow unchecking when clicking the same already-checked radio
+            // Only special_entity-style uncheckable behavior, keep if needed
             if (prefix.toLowerCase() === "special_entity") {
                 radio.dataset.wasChecked = "false";
-                radio.addEventListener("click", function() {
+                radio.addEventListener("click", function () {
                     if (this.dataset.wasChecked === "true") {
-                        // Click the same radio again, deselect it
                         this.checked = false;
                         this.dataset.wasChecked = "false";
                     } else {
-                        // First set wasChecked to false for all radios in the same group
                         document.querySelectorAll(`input[name="${prefix}"]`).forEach(r => {
                             r.dataset.wasChecked = "false";
                         });
-                        // Set current radio as checked
                         this.dataset.wasChecked = "true";
                     }
                 });
             }
 
-            // Create <label> to display the value
             const valLabel = document.createElement("label");
             valLabel.setAttribute("for", radioId);
-            valLabel.textContent = value ? value : "(none)";
+            valLabel.textContent = displayValue || "(none)";
 
-            // Wrap in a container
-            const radioWrapper = document.createElement("span");
-            radioWrapper.classList.add("radio-wrapper");
-            radioWrapper.appendChild(radio);
-            radioWrapper.appendChild(valLabel);
+            const wrapper = document.createElement("span");
+            wrapper.classList.add("radio-wrapper");
+            wrapper.appendChild(radio);
+            wrapper.appendChild(valLabel);
 
-            rowDiv.appendChild(radioWrapper);
+            rowDiv.appendChild(wrapper);
         });
 
-        attributeContainer.appendChild(rowDiv);
+        container.appendChild(rowDiv);
     });
-
-    console.log("Attribute groups:", attributeGroups);
 }
 
 let timerInterval = null;
@@ -346,8 +369,8 @@ modal.onmousedown = (e) => {
 };
 
 $(document).ready(function () {
-    $.when(loadAnnotationConfig(), loadStyleConfig()).then(function () {
-        console.log("All configurations have been loaded", annotationConfig, styleConfig);
+    $.when(loadStyleConfig()).then(function () {
+        console.log("All configurations have been loaded", styleConfig);
     });
 
     // Initial mode set to General Annotation
@@ -360,12 +383,23 @@ $(document).ready(function () {
     // Mode switching: General Annotation
     $("#mode-general").on("click", function () {
         if (document.getElementById("startTraining").classList.contains("active") || document.getElementById("resumeTraining").classList.contains("active")) {
+            const wasRunning = suspendTimerForDialog();
+
             // warn that this will pause training when switching mode
             const switchToGeneral = confirm("This will pause ongoing training. Are you sure you want to switch to General Annotation mode?")
-            if (!switchToGeneral) return;
-            document.getElementById("confirmPauseTraining").click();
+            if (!switchToGeneral) {
+                if (wasRunning) startTimer();   // resume where we left off
+                return;
+            }
+    
+            // Attempt to pause. If it fails, resume the timer and abort.
+            if (!tryPauseTraining()) {          // tryPauseTraining from previous fix
+                if (wasRunning) startTimer();   // ← resume after "not allowed" alert
+                return;
+            }
+            // else: real pause already called pauseTimer()/resetTimerDisplay() inside
         }
-        // Set button styles: set general mode to active, remove active from AL mode
+        // proceed with mode switch (only reached when pause succeeded / no training)
         $(this).addClass("active");
         $("#mode-al").removeClass("active");
         $("#saveAnnotations").hide();
@@ -385,8 +419,12 @@ $(document).ready(function () {
     // Mode switching: Active Learning Annotation
     $("#mode-al").on("click", function () {
         if (current_filename !== '') {
+            const wasRunning = suspendTimerForDialog();
             const switchToAL = confirm("The current annotations will not be saved. Are you sure you want to switch to Active Learning mode?");
-            if (!switchToAL) return;
+            if (!switchToAL) {
+                if (wasRunning) startTimer();
+                return;
+            }
         }
         $(this).addClass("active");
         $("#mode-general").removeClass("active");
@@ -400,7 +438,6 @@ $(document).ready(function () {
         clearFileContent();
         clearRelationships();
     });
-    loadDirectory(currentDir)
 
     $('#open-file-modal').on('click', openModal);
     $('#close-file-modal').on('click', closeModal);
@@ -408,6 +445,104 @@ $(document).ready(function () {
     $('#file-modalOverlay').on('click', function(e) {
         if(e.target === this) closeModal();
      });
+
+    // -----------------------------
+    // Save Selection
+    // -----------------------------
+    document.getElementById("saveSelection").addEventListener("click", function () {
+        const selectedEntityRadio = document.querySelector('input[name="entity"]:checked');
+        const selectedEventRadio = document.querySelector('input[name="event"]:checked');
+        const selectedAttributes = {};
+        document.querySelectorAll('#attribute-area input[type="radio"]:checked').forEach(attr => {
+            if (attr.dataset.prefix) {
+                selectedAttributes[attr.dataset.prefix] = attr.dataset.displayValue;
+            }
+        });
+        const selectedEntity = selectedEntityRadio ? selectedEntityRadio.value : "";
+        const selectedEvent = selectedEventRadio ? selectedEventRadio.value : "";
+
+        // Below update annotation of selectedWords based on selection ...
+
+        console.log(selectedWords)
+        selectedWords.forEach((word, index) => {
+            const tokenSeqId = parseInt(word.id);
+            const annotation = annotations.find(ann => ann.token_seq === tokenSeqId);
+            if (annotation) {
+                if (selectedEntityRadio) {
+                    /// When Entity is selected, update the entity field,
+                    // and save the selected attribute (which may be auto-selected as default) into the annotation
+                    annotation.annotation.entity = index === 0 ? `B-${selectedEntity}` : `I-${selectedEntity}`;
+                    annotation.annotation.attribute = selectedAttributes;  
+                    annotation.annotation.event = "none";
+                    $(word).removeClass("event").addClass("entity");
+                    $(word).removeClass("b").removeClass("i");
+                    if (annotation.annotation.entity.startsWith('B-')) {
+                        $(word).addClass("b");
+                    }
+                    if (annotation.annotation.entity.startsWith('I-')) {
+                        $(word).addClass("i");
+                    }
+                    console.log(selectedAttributes);
+                    // remove 'predicted' class once press save
+                    $(word).removeClass("predicted");
+                } else if (selectedEventRadio) {
+                    // When Event is selected, only update the event field,
+                    // and clear attribute, because event does not need to display attribute
+                    annotation.annotation.event = index === 0 ? `B-${selectedEvent}` : `I-${selectedEvent}`;
+                    annotation.annotation.entity = "O";
+                    annotation.annotation.attribute = {};
+                    $(word).removeClass("entity").addClass("event");
+                    $(word).removeClass("b").removeClass("i");
+                    if (annotation.annotation.event.startsWith('B-')) {
+                        $(word).addClass("b");
+                    }
+                    if (annotation.annotation.event.startsWith('I-')) {
+                        $(word).addClass("i");
+                    }
+                }
+            }
+            $(word).addClass("annotated");
+        });
+
+        $('#modal-overlay, #modal').fadeOut();
+        preventAnnotation = false;
+        selectedWords = [];
+        updateAnnotationLabels();
+    });
+    // Allow keyboard shortcut
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" && $('#modal-overlay, #modal').is(":visible")) {
+            document.getElementById("saveSelection").click();
+        }
+    });
+
+    // -----------------------------
+    // Cancel Selection
+    // -----------------------------
+    document.getElementById("cancelSelection").addEventListener("click", function () {
+        $('#modal-overlay, #modal').fadeOut();
+        preventAnnotation = false;
+        // Reset: Select the default Event (the first Event)
+        const defaultEventRadio = document.querySelector('input[name="event"]');
+        if (defaultEventRadio) {
+            defaultEventRadio.checked = true;
+            defaultEventRadio.dispatchEvent(new Event("change"));
+        }
+        // Clear selectedWords
+        selectedWords.forEach(token => $(token).removeClass("selected"));
+        selectedWords = [];
+    });
+    // Allow keyboard shortcut
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeModal();
+            if ($('#modal-overlay, #modal').is(":visible")) {
+                document.getElementById("cancelSelection").click();
+            }
+        }
+    });
+
+    loadDirectory(currentDir)
 
 });
 
@@ -418,9 +553,15 @@ socket.on('connect', () => {
 socket.on('disconnect', () => {
     console.log('Disconnected from server.');
 });
-socket.on('annotation_request', (data) => {
+socket.on('annotation_request', async (data) => {   // async
     if (data && data.txt_file_path) {
-        console.log(data.txt_file_path)
+        const folder = data.data_folder;
+        if (folder && folder !== loadedConfigFolder) {
+            loadedConfigFolder = folder;
+            currentDir = `preprocessing/${folder}`;
+            await loadAnnotationConfig(currentDir);   // await so subsequent code runs after config is ready
+        }
+        console.log(data.txt_file_path);
         fetchTextFile(data.txt_file_path, true);
         if (data.json_file_path && first_prediction !== 0) {
             console.log(data.json_file_path)
@@ -448,20 +589,37 @@ socket.on('annotation_process', (data) => {
     console.log(data.annotation_process);
 });
 
+// Attempts to pause training. Returns true on success, false if not allowed.
+// NOTE: this does NOT touch the timer — callers handle suspend/resume.
+function tryPauseTraining() {
+    if (disablePauseTraining) {
+        alert('Pause training not allowed. Please finish a few more reports before pausing.');
+        return false;
+    }
+    socket.emit("end training");
+    alert("Pause training signal emitted!");
+    $("#startTraining").removeClass("active");
+    $("#resumeTraining").removeClass("active");
+    $("#confirmPauseTraining").addClass("active");
+    pauseTimer();
+    resetTimerDisplay();
+    return true;
+}
+
+// Suspend the timer around a blocking confirm()/alert() dialog.
+// Returns true if the timer was running (so caller can resume on cancel).
+function suspendTimerForDialog() {
+    if (isRunning) {
+        pauseTimer();
+        return true;
+    }
+    return false;
+}
+
 window.onload = function () {
     // When the user clicks the "Confirm End Training" button, emit the "end training" signal
     document.getElementById("confirmPauseTraining").addEventListener("click", function () {
-        if (disablePauseTraining) {
-            alert('Pause training not allowed. Please finish a few more reports before pausing.');
-            return;
-        }
-        socket.emit("end training");
-        alert("Pause training signal emitted!");
-        $("#startTraining").removeClass("active");
-        $("#resumeTraining").removeClass("active");
-        $("#confirmPauseTraining").addClass("active");
-        pauseTimer();
-        resetTimerDisplay();
+        tryPauseTraining();
     });
 };
 
@@ -571,7 +729,7 @@ function fetchAnnotationFile(jsonFilePath, predicted) {
 function resetAnnotations() {
     annotations.forEach((annotation, index) => {
         annotation.annotation.entity = "O";
-        annotation.annotation.attribute = [];
+        annotation.annotation.attribute = {};
         annotation.annotation.event = "none";
         annotation.annotation.relationship = "none";
         annotation.annotation.sourceRelationships = [];
@@ -601,10 +759,13 @@ function showNotification(message) {
 socket.on('training_status', (status) => {
     console.log('Training status:', status);
     if (status.status == 'warning') {
+        const wasRunning = suspendTimerForDialog();
         const forceStart = confirm(status.message)
         if (forceStart) {
             socket.emit('start_training', { force: forceStart });
             refreshProgressBar(0,1);
+        } else if (wasRunning) {
+            startTimer();   // user backed out — keep timer going
         }
     }
     if (status.status == 'error') {
@@ -793,6 +954,34 @@ async function getNextFile(currentIndex) {
     }
 }
 
+// Return the display label for an internal entity type code
+function entityDisplayName(code) {
+    if (!code) return code;
+    return (annotationConfig.entityDisplayNames && annotationConfig.entityDisplayNames[code]) || code;
+}
+
+// Given a B-/I- prefixed tag like "B-QYL", return "B-起始地"; for "O" or null, return as-is.
+function entityTagDisplayName(tag) {
+    if (!tag || tag === "O") return tag;
+    const m = tag.match(/^([BI])-(.+)$/);
+    if (!m) return tag;
+    return `${m[1]}-${entityDisplayName(m[2])}`;
+}
+
+// Detect CJK (Chinese/Japanese/Korean) characters by Unicode ranges
+function isCJK(char) {
+    const cp = char.codePointAt(0);
+    return (
+        (cp >= 0x4E00  && cp <= 0x9FFF)  ||  // CJK Unified Ideographs
+        (cp >= 0x3400  && cp <= 0x4DBF)  ||  // CJK Extension A
+        (cp >= 0x20000 && cp <= 0x2A6DF) ||  // CJK Extension B
+        (cp >= 0xF900  && cp <= 0xFAFF)  ||  // CJK Compatibility Ideographs
+        (cp >= 0x2F800 && cp <= 0x2FA1F) ||  // CJK Compatibility Ideographs Supplement
+        (cp >= 0x3000  && cp <= 0x303F)  ||  // CJK Symbols and Punctuation
+        (cp >= 0xFF00  && cp <= 0xFFEF)      // Halfwidth and Fullwidth Forms
+    );
+}
+
 function processLine(line, line_number) {
     const lineContainer = document.createElement('div');
     lineContainer.className = 'line'
@@ -806,7 +995,7 @@ function processLine(line, line_number) {
         let tokens = [];
         
         // 1. First split by spaces and some explicit punctuation marks
-        let initialTokens = line.split(/(\s+|[\%\*\:\(\)\,\;\#\>])/);
+        let initialTokens = line.split(/(\s+|[\%\*\:\(\)\,\;\#\>\"\'])/);
         
         // Filter out empty strings
         initialTokens = initialTokens.filter(token => token !== '');
@@ -818,16 +1007,16 @@ function processLine(line, line_number) {
             
             // Process arrow symbols
             if (initialToken.includes('↑') || initialToken.includes('↓') || initialToken.includes('→') || initialToken.includes('←') || initialToken.includes('/') || initialToken.includes('+') ||
-                initialToken.includes('?') || initialToken.includes('<') || initialToken.includes('>')) {
+                initialToken.includes('?') || initialToken.includes('<') || initialToken.includes('>') || initialToken.includes('"') || initialToken.includes("'")) {
                 let newTempTokens = [];
                 for (let token of tempTokens) {
                     // Only process tokens containing arrows
                     if (token.includes('↑') || token.includes('↓') || token.includes('→') || token.includes('←') || token.includes('/') || token.includes('+') ||
-                        token.includes('?') || token.includes('<') || token.includes('>')) {
+                        token.includes('?') || token.includes('<') || token.includes('>')|| token.includes('"') || token.includes("'")) {
                         let currentToken = "";
                         for (let char of token) {
                             if (char === '↑' || char === '↓' || char === '→' || char === '←' || char === '/' || char === '+' ||
-                                char === '?' || char === '<' || char === '>') {
+                                char === '?' || char === '<' || char === '>' || char === '"' || char === "'") {
                                 if (currentToken) {
                                     newTempTokens.push(currentToken);
                                     currentToken = "";
@@ -849,9 +1038,35 @@ function processLine(line, line_number) {
             }
             
             // Further process each tempToken
+            // ── Step 0: split CJK characters into individual tokens ──
+            let cjkSplitTokens = [];
             tempTokens.forEach(token => {
+                if ([...token].some(ch => isCJK(ch))) {
+                    let buf = "";
+                    for (const ch of token) {
+                        if (isCJK(ch)) {
+                            if (buf) { cjkSplitTokens.push(buf); buf = ""; }
+                            cjkSplitTokens.push(ch);
+                        } else {
+                            buf += ch;
+                        }
+                    }
+                    if (buf) cjkSplitTokens.push(buf);
+                } else {
+                    cjkSplitTokens.push(token);
+                }
+            });
+            tempTokens = cjkSplitTokens;
+
+            tempTokens.forEach(token => {
+                // Single CJK char → pass through unchanged (skip English regexes)
+                if ([...token].length === 1 && isCJK(token)) {
+                    tokens.push(token);
+                    return;
+                }
+
                 // Check for patterns like letters followed by hyphen/plus, or letters followed by ending period
-                if (/[a-zA-Z][\-\+\.]+/.test(token) || /[0-9]\.$/.test(token) || /[a-zA-Z]\.$/.test(token) || /[a-zA-Z]\/$/.test(token) ||
+                if (/[a-zA-Z][\-\+\.\"\']+/.test(token) || /[0-9]\.$/.test(token) || /[a-zA-Z]\.$/.test(token) || /[a-zA-Z]\/$/.test(token) ||
                     /[0-9][a-zA-Z]/.test(token) || /^C3[0-9]/.test(token) || /^C4[0-9]/.test(token) || /RBC[0-9]/.test(token) ||
                     /(?<!^)[a-z][A-Z]/.test(token) || /(?<!^)[A-Z][a-z]/.test(token) ) {
                     let newTokens = [];
@@ -862,7 +1077,7 @@ function processLine(line, line_number) {
                         const char = token[i];
 
                         // Check if current character is a letter and next is -, +, or ending period
-                        if ((i < token.length - 1 && /[a-zA-Z]/.test(char) && ['-', '+', '.'].includes(token[i+1])) || 
+                        if ((i < token.length - 1 && /[a-zA-Z]/.test(char) && ['-', '+', '.', '"', '"'].includes(token[i+1])) || 
                             (i === token.length - 2 && (token[i+1] === '.' || token[i+1] === '/')) ||
                             (i < token.length - 1 && /[0-9]/.test(char) && /[a-zA-Z]/.test(token[i+1])) ||
                             (i == 1 && (char == '3' || char == '4') && token[i-1] == 'C' && i < token.length-1 && /[0-9]/.test(token[i+1])) ||
@@ -878,13 +1093,13 @@ function processLine(line, line_number) {
                             // Collect all consecutive special characters
                             let specialChars = "";
                             let j = i + 1;
-                            while (j < token.length && ['-', '+', '.'].includes(token[j])) {
+                            while (j < token.length && ['-', '+', '.', '"', '"'].includes(token[j])) {
                                 specialChars += token[j];
                                 j++;
                             }
 
                             // If consecutive - or +, treat each as a separate token
-                            if (specialChars && [...specialChars].every(c => ['-', '+', '.'].includes(c))) {
+                            if (specialChars && [...specialChars].every(c => ['-', '+', '.', '"', '"'].includes(c))) {
                                 [...specialChars].forEach(c => {
                                     newTokens.push(c);
                                 });
@@ -972,7 +1187,7 @@ function processLine(line, line_number) {
                     token_seq: tokenSeq,
                     annotation: {
                         entity: "O",
-                        attribute: [],
+                        attribute: {},
                         event: "none",
                         sourceRelationships: [],
                         targetRelationships: []
@@ -1008,7 +1223,7 @@ function processLine(line, line_number) {
                     token_seq: tokenSeq,
                     annotation: {
                         entity: "O",
-                        attribute: [],
+                        attribute: {},
                         event: "none",
                         sourceRelationships: [],
                         targetRelationships: []
@@ -1098,7 +1313,7 @@ $('#textDisplay').on('contextmenu', '.annotated', function (event) {
         let ann = annotations.find(a => a.token_seq === parseInt(token.id));
         if (ann) {
             ann.annotation.entity = "O";
-            ann.annotation.attribute = [];
+            ann.annotation.attribute = {};
             ann.annotation.event = "none";
             ann.annotation.sourceRelationships = [];
             ann.annotation.targetRelationships = [];
@@ -1224,243 +1439,97 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    // -----------------------------
-    // 1. Initialize and wait for config to load
-    // -----------------------------
-    function waitForConfig() {
-        if (
-            !annotationConfig ||
-            !annotationConfig.entityTypes ||
-            !annotationConfig.eventTypes ||
-            !annotationConfig.attributeTypes ||
-            !annotationConfig.entityDefaultAttributes
-        ) {
-            console.log("Waiting for annotationConfig...");
-            setTimeout(waitForConfig, 100);
-        } else {
-            initializeModalOptions();
-            bindModalEvents();
-            // Default select the first event
-            const defaultEventRadio = document.querySelector('input[name="event"]');
-            if (defaultEventRadio) {
-                defaultEventRadio.checked = true;
-                defaultEventRadio.dispatchEvent(new Event("change"));
-            }
-        }
-    }
-    waitForConfig();
+function bindModalEvents() {
+    const entityRadios = document.querySelectorAll('input[name="entity"]');
+    const eventRadios  = document.querySelectorAll('input[name="event"]');
+    const attributeArea = document.getElementById("attribute-area");
 
-    // -----------------------------
-    // 2. Initialize Modal Overlay Options
-    // -----------------------------
-    function initializeModalOptions() {
-        // Initialize Entity area
-        const entityContainer = document.getElementById("entity-area");
-        entityContainer.innerHTML = "<h4>Entity</h4>";
-        annotationConfig.entityTypes.forEach(type => {
-            const div = document.createElement("div");
-            div.innerHTML = `<input type="radio" name="entity" value="${type}" id="entity-${type}">
-                            <label for="entity-${type}">${type}</label>`;
-            entityContainer.appendChild(div);
-        });
+    // ---- EVENT SELECTED ----
+    eventRadios.forEach(radio => {
+        radio.onchange = function () {
+            if (!this.checked) return;
+            entityRadios.forEach(e => e.checked = false);
+            attributeArea.style.display = "none";
+            attributeArea.querySelectorAll('input[type="radio"]')
+                .forEach(r => r.checked = false);
+        };
+    });
 
-        // Initialize Event area
-        const eventContainer = document.getElementById("event-area");
-        eventContainer.innerHTML = "<h4>Event</h4>";
-        annotationConfig.eventTypes.forEach(type => {
-            const div = document.createElement("div");
-            // Generate id like "event-Event1"
-            const eventId = "event-" + type.replace(/\s+/g, '');
-            div.innerHTML = `<input type="radio" name="event" value="${type}" id="${eventId}">
-                            <label for="${eventId}">${type}</label>`;
-            eventContainer.appendChild(div);
-        });
-    }
+    // ---- ENTITY SELECTED ----
+    entityRadios.forEach(radio => {
+        radio.onchange = function () {
+            if (!this.checked) return;
+            eventRadios.forEach(e => e.checked = false);
 
-    // -----------------------------
-    // 3. Bind Entity / Event / Attribute events
-    // -----------------------------
-    function bindModalEvents() {
-        const entityRadios = document.querySelectorAll('input[name="entity"]');
-        const eventRadios = document.querySelectorAll('input[name="event"]');
-        const attributeArea = document.getElementById("attribute-area");
+            const entity = this.value;
+            const map  = annotationConfig.entityAttributeMap?.[entity];
+            const mode = annotationConfig.entityAttributeMapMode || "explicit";
 
-        // When event area is selected (originally logic for "when entity is selected")
-        // Now changed to: Hide Attribute when Event is selected
-        eventRadios.forEach(radio => {
-            radio.addEventListener("change", function () {
-                if (this.checked) {
-                    // 1. Clear selections in Entity area
-                    entityRadios.forEach(eradio => eradio.checked = false);
-                    // 2. Hide Attribute area
+            // "all" mode OR no map at all → show all attributes, unrestricted
+            if (mode === "all" || !annotationConfig.entityAttributeMap) {
+                // No attributes configured at all → nothing to show
+                if (Object.keys(annotationConfig.attributeTypes || {}).length === 0) {
                     attributeArea.style.display = "none";
-                    // 3. Clear all Attribute options
-                    document.querySelectorAll('#attribute-area input[type="radio"]').forEach(attr => {
-                        attr.checked = false;
-                    });
+                    attributeArea.querySelectorAll('input[type="radio"]')
+                        .forEach(r => r.checked = false);
+                    return;
                 }
-            });
-        });
-
-        // When entity area is selected (originally logic for "when event is selected")
-        entityRadios.forEach(radio => {
-            radio.addEventListener("change", function () {
-                if (this.checked) {
-                    // 1. Clear selections in Event area
-                    eventRadios.forEach(eradio => eradio.checked = false);
-
-                    // 2. Show Attribute area
-                    attributeArea.style.display = "block";
-
-                    // 3. Get default attributes based on the value of the selected Entity
-                    //    Use annotationConfig.entityDefaultAttributes[this.value]
-                    //    If not found, give empty array
-                    const defaultAttrs = (annotationConfig.entityDefaultAttributes && annotationConfig.entityDefaultAttributes[this.value]) || [];
-                    console.log("For Entity:", this.value, "defaultAttrs:", defaultAttrs);
-
-                    // 4. First clear all checkbox states of Attribute options
-                    document.querySelectorAll('#attribute-area input[type="radio"]').forEach(attr => {
-                        attr.checked = false;
+                attributeArea.style.display = "block";
+                attributeArea.querySelectorAll('.attribute-row').forEach(row => {
+                    row.style.display = "";
+                    row.querySelectorAll('input[type="radio"]').forEach(r => {
+                        r.disabled = false;
+                        r.parentElement.style.display = "";
                     });
-
-                    // 5. Automatically check the corresponding Attribute
-                    //    Each entry in defaultAttrs is like "time_nature: within_10days"
-                    //    So need to split into prefix and value, then find input[name="prefix"][value="value"] to check
-                    defaultAttrs.forEach(defAttr => {
-                        // Split prefix and value by colon
-                        let [prefix, val] = defAttr.split(':').map(s => s.trim());
-                        if (!val) {
-                            // If no colon or value, skip
-                            return;
-                        }
-                        // Find the corresponding radio
-                        const selector = `#attribute-area input[name="${prefix}"][value="${val}"]`;
-                        const targetRadio = document.querySelector(selector);
-                        if (targetRadio) {
-                            targetRadio.checked = true;
-                        }
-                    });
-                }
-            });
-        });
-    }
-
-    // -----------------------------
-    // 4. Save Selection
-    // -----------------------------
-    document.getElementById("saveSelection").addEventListener("click", function () {
-        const selectedEntityRadio = document.querySelector('input[name="entity"]:checked');
-        const selectedEventRadio = document.querySelector('input[name="event"]:checked');
-        const selectedAttributes = Array.from(document.querySelectorAll('#attribute-area input[type="radio"]:checked'))
-                                        .map(attr => attr.value);
-        const selectedEntity = selectedEntityRadio ? selectedEntityRadio.value : "";
-        const selectedEvent = selectedEventRadio ? selectedEventRadio.value : "";
-
-        // ... Below update annotation of selectedWords based on selection ...
-
-        console.log(selectedWords)
-        selectedWords.forEach((word, index) => {
-            const tokenSeqId = parseInt(word.id);
-            const annotation = annotations.find(ann => ann.token_seq === tokenSeqId);
-            if (annotation) {
-                if (selectedEntityRadio) {
-                    /// When Entity is selected, update the entity field,
-                    // and save the selected attribute (which may be auto-selected as default) into the annotation
-                    annotation.annotation.entity = index === 0 ? `B-${selectedEntity}` : `I-${selectedEntity}`;
-                    annotation.annotation.attribute = selectedAttributes;  
-                    annotation.annotation.event = "none";
-                    $(word).removeClass("event").addClass("entity");
-                    $(word).removeClass("b").removeClass("i");
-                    if (annotation.annotation.entity.startsWith('B-')) {
-                        $(word).addClass("b");
-                    }
-                    if (annotation.annotation.entity.startsWith('I-')) {
-                        $(word).addClass("i");
-                    }
-                    console.log(selectedAttributes);
-                    // remove 'predicted' class once press save
-                    $(word).removeClass("predicted");
-                } else if (selectedEventRadio) {
-                    // When Event is selected, only update the event field,
-                    // and clear attribute, because event does not need to display attribute
-                    annotation.annotation.event = index === 0 ? `B-${selectedEvent}` : `I-${selectedEvent}`;
-                    annotation.annotation.entity = "O";
-                    annotation.annotation.attribute = [];
-                    $(word).removeClass("entity").addClass("event");
-                    $(word).removeClass("b").removeClass("i");
-                    if (annotation.annotation.event.startsWith('B-')) {
-                        $(word).addClass("b");
-                    }
-                    if (annotation.annotation.event.startsWith('I-')) {
-                        $(word).addClass("i");
-                    }
-                }
+                });
+                return;
             }
-            $(word).addClass("annotated");
-        });
 
-        $('#modal-overlay, #modal').fadeOut();
-        preventAnnotation = false;
-        selectedWords = [];
-        updateAnnotationLabels();
-    });
-    // Allow keyboard shortcut
-    document.addEventListener("keydown", function (event) {
-        if (event.key === "Enter" && $('#modal-overlay, #modal').is(":visible")) {
-            document.getElementById("saveSelection").click();
-        }
-    });
-
-    // -----------------------------
-    // 5. Cancel Selection
-    // -----------------------------
-    document.getElementById("cancelSelection").addEventListener("click", function () {
-        $('#modal-overlay, #modal').fadeOut();
-        preventAnnotation = false;
-        // Reset: Select the default Event (the first Event)
-        const defaultEventRadio = document.querySelector('input[name="event"]');
-        if (defaultEventRadio) {
-            defaultEventRadio.checked = true;
-            defaultEventRadio.dispatchEvent(new Event("change"));
-        }
-        // Clear selectedWords
-        selectedWords.forEach(token => $(token).removeClass("selected"));
-        selectedWords = [];
-    });
-    // Allow keyboard shortcut
-    document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") {
-            closeModal();
-            if ($('#modal-overlay, #modal').is(":visible")) {
-                document.getElementById("cancelSelection").click();
+            // New config: entity has no mapped attributes → hide whole panel
+            if (!map || Object.keys(map).length === 0) {
+                attributeArea.style.display = "none";
+                attributeArea.querySelectorAll('input[type="radio"]')
+                    .forEach(r => r.checked = false);
+                return;
             }
-        }
+
+            attributeArea.style.display = "block";
+
+            attributeArea.querySelectorAll('.attribute-row').forEach(row => {
+                const prefix = row.dataset.attributePrefix;
+                const allowedDisplays = map[prefix];
+
+                if (!allowedDisplays) {
+                    row.style.display = "none";
+                    row.querySelectorAll('input[type="radio"]').forEach(r => {
+                        r.checked = false;
+                        r.disabled = true;
+                        r.parentElement.style.display = "none";
+                    });
+                    return;
+                }
+
+                row.style.display = "";
+                row.querySelectorAll('input[type="radio"]').forEach(r => {
+                    const displayVal = r.dataset.displayValue;
+                    const allowed = allowedDisplays.includes(displayVal);
+                    r.disabled = !allowed;
+                    r.parentElement.style.display = allowed ? "" : "none";
+                    if (!allowed) r.checked = false;
+                });
+            });
+
+            // Apply default attributes
+            const defaults = annotationConfig.entityDefaultAttributes?.[entity] || [];
+            defaults.forEach(defAttr => {
+                const [prefix, val] = defAttr.split(':').map(s => s.trim());
+                if (!val) return;
+                document.querySelectorAll(`#attribute-area input[name="${prefix}"]`).forEach(r => {
+                    if (r.dataset.displayValue === val && !r.disabled) r.checked = true;
+                });
+            });
+        };
     });
-});
-
-function updateAnnotationTypeUI() {
-    // Attempt to query from entity and event separately
-    const selectedEntityRadio = document.querySelector('input[name="entity"]:checked');
-    const selectedEventRadio = document.querySelector('input[name="event"]:checked');
-
-    // If event radio is selected, treat as "event", otherwise if entity is selected treat as "entity"
-    let selectedType = "";
-    if (selectedEventRadio) {
-        selectedType = "event";
-    } else if (selectedEntityRadio) {
-        selectedType = "entity";
-    }
-
-    if (selectedType === "event") {
-        // When Event is selected, show attribute area, hide Entity area
-        document.getElementById("attribute-area").style.display = "block";
-        document.getElementById("entity-area").style.display = "none";
-    } else {
-        // Otherwise show Entity area, hide attribute area
-        document.getElementById("attribute-area").style.display = "none";
-        document.getElementById("entity-area").style.display = "block";
-    }
 }
 
 (function initTooltip() {
@@ -1477,10 +1546,10 @@ function updateAnnotationTypeUI() {
             let tooltipText = "";
             if (tokenElem.classList.contains("entity")) {
                 // Only entity shows attributes, if there are attributes then include them in display
-                let attrText = (Array.isArray(annData.annotation.attribute) && annData.annotation.attribute.length > 0)
-                ? annData.annotation.attribute.join(", ")
-                : "none";
-                tooltipText = "Entity: " + annData.annotation.entity + " | Attributes: " + attrText;
+                const a = annData.annotation.attribute || {};
+                const vals = Object.values(a).filter(Boolean);
+                const attrText = vals.length > 0 ? vals.map(attributeDisplayName).join(", ") : "none";
+                tooltipText = "Entity: " + entityTagDisplayName(annData.annotation.entity) + " | Attributes: " + attrText;
             } else if (tokenElem.classList.contains("event")) {
                 // Event only shows event, does not show attribute
                 tooltipText = "Event: " + annData.annotation.event;
@@ -1576,6 +1645,16 @@ function createAnnotationLabel(tokenElem, annotationText, predicted) {
     }
 }
 
+function attributeDisplayName(value) {
+    const attrTypes = annotationConfig.attributeTypes || {};
+    for (const group of Object.values(attrTypes)) {
+        for (const [display, mapped] of Object.entries(group)) {
+            if (mapped === value || display === value) return display;
+        }
+    }
+    return value;
+}
+
 function updateAnnotationLabels() {
     // Save current scroll position
     const scrollY = window.scrollY;
@@ -1606,22 +1685,11 @@ function updateAnnotationLabels() {
             let attrText = "";
             let predicted = false;
             if (tokenElem.classList.contains("entity") && annData.annotation.entity.startsWith('B-')) {
-                if (Array.isArray(annData.annotation.attribute) && annData.annotation.attribute.length > 0) {
-                    const attributeMapping = annotationConfig.attributeTypes
-                    const orderedAttributes = Object.keys(attributeMapping);
-                    attrText = annData.annotation.attribute
-                        .map(attr => {
-                            // Find the corresponding mapped value based on attribute type
-                            for (let type of orderedAttributes) {
-                                if (attributeMapping[type] && attributeMapping[type][attr]) {
-                                    return attributeMapping[type][attr]; // Return mapped value
-                                }
-                            }
-                            return attr; // Default to original if no mapping exists
-                        })
-                        .join(", ");
-                }
-                annotationText = `${annData.annotation.entity.slice(2)} [${attrText}]`;
+                const a = annData.annotation.attribute || {};
+                const vals = Object.values(a).filter(Boolean);
+                if (vals.length > 0) attrText = vals.map(attributeDisplayName).join(", ");
+                const code = annData.annotation.entity.slice(2);       // e.g. "QYL"
+                annotationText = `${entityDisplayName(code)} [${attrText}]`;
                 predicted = tokenElem.classList.contains("predicted");
             } else if (tokenElem.classList.contains("event") && annData.annotation.event.startsWith('B-')) {
                 annotationText = annData.annotation.event.slice(2);
@@ -1694,16 +1762,23 @@ document.addEventListener("dblclick", function (event) {
 
             // Set the radio buttons based on the annotation
             if (annotation.annotation.entity !== "O") {
-                document.querySelector(`input[name="entity"][value="${entityName}"]`).checked = true;
+                const entityRadio = document.querySelector(`input[name="entity"][value="${entityName}"]`);
+                if (!entityRadio) {
+                    console.warn("No entity radio for", entityName, "— is annotationConfig loaded?");
+                    return;
+                }
+                entityRadio.checked = true;
                 document.querySelectorAll('input[name="event"]').forEach(eradio => eradio.checked = false);
-                document.getElementById("attribute-area").style.display = "block";
                 document.querySelectorAll('#attribute-area input[type="radio"]').forEach(attr => {
                     attr.checked = false;
                 });
-                annotation.annotation.attribute.forEach(attr => {
-                    if (attr !== "O") {
-                        document.querySelector(`input[type="radio"][value="${attr}"]`).checked = true;
-                    }
+                entityRadio.dispatchEvent(new Event("change"));
+
+                const a = annotation.annotation.attribute || {};
+                Object.values(a).filter(Boolean).forEach(attr => {
+                    document.querySelectorAll('#attribute-area input[type="radio"]').forEach(r => {
+                        if (!r.disabled && r.dataset.displayValue === attr) r.checked = true;
+                    });
                 });
             } else if (annotation.annotation.event !== "none") {
                 document.querySelector(`input[name="event"][value="${eventName}"]`).checked = true;
@@ -2307,8 +2382,4 @@ function saveFileAnnotationTime(filename, annotationTime) {
             console.error("Error saving file annotation time:", xhr.responseText);
         }
     });
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }
