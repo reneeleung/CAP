@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, abort
+from flask import Flask, render_template, request, jsonify, abort, Response
 from flask_socketio import SocketIO, emit
 import json
 import os
@@ -11,7 +11,11 @@ socketio = SocketIO(app)
 
 output_id_counter = 0  # Access the global counter
 
-source_dir = 'demo' # TODO CHANGE TO YOUR DIRECTORY, also change in run_preprocess.py
+source_dir = 'meddeid' # TODO CHANGE TO YOUR DIRECTORY, also change in run_preprocess.py
+modelcard = 'emilyalsentzer/Bio_ClinicalBERT'
+# modelcard = 'hfl/chinese-roberta-wwm-ext' # for Chinese data
+# model_base = "models/model_pseudo_512.pth" # base model
+model_base = "" # empty base model
 PROJECT_ROOT = os.path.abspath(".") 
 pipeline = None
 training_thread = None
@@ -38,21 +42,31 @@ def list_directory():
     dir_path = request.args.get('dir', '')
     abs_path = safe_path(dir_path)
     items = []
+    has_annotation_config = False
+
     for name in sorted(os.listdir(abs_path)):
         item_path = os.path.join(abs_path, name)
-        if name.startswith('.'): # do not show hidden files or directories
+        if name.startswith('.'):
             continue
+
         if os.path.isdir(item_path):
-            items.append({"name": name, "type": "directory", "path": os.path.join(dir_path, name)})
+            items.append({"name": name, "type": "directory",
+                          "path": os.path.join(dir_path, name)})
         else:
-            # If you only want to select .txt files, filter them here
+            if name == 'annotation_config.json':
+                has_annotation_config = True
+                continue  # don't show it in the browser
             if name.lower().endswith('.txt'):
                 filetype = "file"
                 if os.path.exists(os.path.join(abs_path, name.rsplit('.', 1)[0] + '.json')):
                     filetype = "file_annotated"
-                items.append({"name": name, "type": filetype, "path": os.path.join(dir_path, name)})
-    
-    return jsonify(items)
+                items.append({"name": name, "type": filetype,
+                              "path": os.path.join(dir_path, name)})
+
+    return jsonify({
+        "items": items,
+        "has_annotation_config": has_annotation_config,
+    })
 
 @app.route('/get_file_by_index', methods=['GET'])
 def get_file_by_index():
@@ -106,14 +120,15 @@ def get_file_by_index():
 def get_file(filename):
     print("File name: \n", filename)
     abs_file = safe_path(filename)
-    print("abs file: ", abs_file)
-    if os.path.exists(abs_file):
-        with open(abs_file, 'r', encoding='utf-8') as f:
-            content = f.read()
-        return content
-    else:
+    if not os.path.exists(abs_file):
         abort(404)
 
+    with open(abs_file, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    if abs_file.lower().endswith('.json'):
+        return Response(content, mimetype='application/json')
+    return Response(content, mimetype='text/plain')
 
 @app.route('/annotations', methods=['POST'])
 def save_annotations():
@@ -185,7 +200,7 @@ def handle_start_training(data):
     def run_training():
         pipeline.end_training = False
         pipeline.activelearning(strategyname='CNBSE', start_echo=0, stop_echo=150, seed=seed, resume=False,
-                                query_prop=0.01, initial_prop=0.03, choices_number=5, NBest = 3, change_loss_threshold = 0.005, pretrained_model_path="models/model_pseudo_512.pth")
+                                query_prop=0.01, initial_prop=0.03, choices_number=5, NBest = 3, change_loss_threshold = 0.005, pretrained_model_path=model_base, max_docs=30)
         # copy important csv files to directory
         import shutil
         shutil.copy(results_dir+'/seed_1_Training_losses.csv', app.config['DATA_PATH']+'/../')
@@ -203,8 +218,8 @@ def handle_start_training(data):
     shutil.rmtree(results_dir, ignore_errors=True)
     # remove all annotated jsons
     json_files = glob.glob(os.path.join(app.config['DATA_PATH'], "*.json"))
-    for file in json_files:
-        os.remove(file)
+    # for file in json_files:
+    #     os.remove(file)
     threading.Thread(target=run_training).start()
     emit('training_status', {'status': 'running', 'mode': 'start', 'message': 'Training started.'})
 
@@ -231,7 +246,7 @@ def handle_continue_training():
         pipeline.end_training = False
         torch.cuda.empty_cache()
         pipeline.activelearning(strategyname='CNBSE', start_echo=0, stop_echo=150, seed=seed, resume=True,
-                                query_prop=0.01, initial_prop=0.3, choices_number=5, NBest = 3, change_loss_threshold = 0.005, pretrained_model_path="models/model_pseudo_512.pth")
+                                query_prop=0.01, initial_prop=0.3, choices_number=5, NBest = 3, change_loss_threshold = 0.005, pretrained_model_path=model_base, max_docs=30)
         import shutil
         results_dir = 'datasets/results/scratch/CNBSE'
         shutil.copy(results_dir+'/seed_1_Training_losses.csv', app.config['DATA_PATH']+'/../')
@@ -358,7 +373,6 @@ if __name__ == "__main__":
     work_dir = os.path.abspath('./datasets')
     trainfile = os.path.join(work_dir,'Tags_training_512_cluster10.csv')
     testfile = None
-    modelcard = 'emilyalsentzer/Bio_ClinicalBERT'
     pipeline = BertALPipeline(trainfile=trainfile, testfile=testfile, workdir=work_dir, modelcard=modelcard, socketio=socketio, data_folder=source_dir)
     socketio.run(app, port=8000, debug=True)
 

@@ -384,7 +384,7 @@ def main():
     parser.add_argument('--json_file', required=False, help='Path to a single JSON annotation file')
     parser.add_argument('--txt_file', required=False, help='Path to a single original text file')
     parser.add_argument('--output_file', required=False, help='Path to a single output .ann file')
-    parser.add_argument('--annotation_config', required=False, default='../../static/conf/annotation_config.json')
+    parser.add_argument('--annotation_config', required=False, default='annotation_config.json')
 
     args = parser.parse_args()
     

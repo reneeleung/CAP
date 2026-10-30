@@ -7,10 +7,6 @@
 import re
 from word2number import w2n
 from collections import defaultdict
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import ATTRIBUTE_MAPPING, ATTRIBUTE_LIST
 
 max_sentence_length = 512
 
@@ -73,7 +69,7 @@ def readAnnFile(filename):
     r_stats = list(map(lambda tok: tok[1], r_lines))
     return t_lines, a_lines, e_lines, r_lines, t_stats, r_stats
 
-def readEntities(t_lines, a_lines, e_lines, r_lines, text_info):
+def readEntities(t_lines, a_lines, e_lines, r_lines, text_info, attribute_list):
     """
     Parameters:
       t_lines: T lines list from readAnnFile
@@ -81,6 +77,7 @@ def readEntities(t_lines, a_lines, e_lines, r_lines, text_info):
       e_lines: E lines list from readAnnFile
       r_lines: R lines list from readAnnFile
       text_info: Text information from readTextFile
+      attribute_list:    ordered list of attribute/concept names
       
     Returns:
       Updated text_info and entity dictionary
@@ -187,12 +184,12 @@ def readEntities(t_lines, a_lines, e_lines, r_lines, text_info):
         for i in range(len(line_dict['words'])):
             token_start = int(line_dict['starts'][i])
             token_end = token_start + len(line_dict['words'][i])
-            
+
             # Default values
             target_label = 'O'
             # Initialize attribute values with 'O'
-            attr_values = {attr_name: 'O' for attr_name in ATTRIBUTE_LIST}
-            
+            attr_values = {attr_name: 'O' for attr_name in attribute_list}
+
             # Check if any entity overlaps with current token
             for entity_id, entity in entity_dict.items():
                 entity_start = entity['start']
@@ -211,28 +208,24 @@ def readEntities(t_lines, a_lines, e_lines, r_lines, text_info):
                         target_label = f"B-{entity['type']}"
                     else:
                         target_label = f"I-{entity['type']}"
-                    
-                    # Get attribute values using the full names from config
+
                     attributes = entity['attributes']
-                    for attr_name in ATTRIBUTE_LIST:
-                        full_name = ATTRIBUTE_MAPPING[attr_name]
-                        attr_values[attr_name] = attributes.get(full_name, 'O')
-                    
+                    for attr_name in attribute_list:
+                        attr_values[attr_name] = attributes.get(attr_name, 'O')
                     break
-            
-            # Update labels
+
             line_dict['targets'][i] = target_label
-            # Store attributes as tuple in the order of ATTRIBUTE_LIST
-            new_attributes.append(tuple(attr_values[attr_name] for attr_name in ATTRIBUTE_LIST))
-        
+            new_attributes.append(tuple(attr_values[attr_name] for attr_name in attribute_list))
+
         # Update attributes list
         line_dict['attributes'] = new_attributes
-    
+
     return text_info, entity_dict
 
 # converts the text_info data structure into sentences
 
-def makeSentences_internal(text_info, new_tok_counter, sent_len_counter, max_sent_len=100, paragraphMode=False):
+def makeSentences_internal(text_info, new_tok_counter, sent_len_counter,
+                           attribute_list, max_sent_len=100, paragraphMode=False):
 
     sentence_length = 0  # length of current words
     sentences = []
@@ -284,7 +277,7 @@ def makeSentences_internal(text_info, new_tok_counter, sent_len_counter, max_sen
                 sentence['attributes'].append(line_dict['attributes'][i])
             else:
                 # If index out of bounds, use default value (all 'O')
-                sentence['attributes'].append(tuple('O' for _ in ATTRIBUTE_LIST))
+                sentence['attributes'].append(tuple('O' for _ in attribute_list))
                 
             # increment sentence length and update counter
             sentence_length += 1
@@ -314,22 +307,19 @@ def makeSentences_internal(text_info, new_tok_counter, sent_len_counter, max_sen
     return sentences
 
 
-def makeSentences(text_info, new_tok_counter, sent_len_counter):
-
+def makeSentences(text_info, new_tok_counter, sent_len_counter, attribute_list):
     global max_sentence_length
-    sentences = makeSentences_internal(text_info, new_tok_counter, sent_len_counter, max_sentence_length, False)
+    sentences = makeSentences_internal(text_info, new_tok_counter, sent_len_counter, attribute_list, max_sentence_length, False)
     return sentences
 
-def makeSentences_for_predict(text_info, new_tok_counter, sent_len_counter):
-
+def makeSentences_for_predict(text_info, new_tok_counter, sent_len_counter, attribute_list):
     global max_sentence_length
-    sentences = makeSentences_internal(text_info, new_tok_counter, sent_len_counter, max_sentence_length*3, False)
+    sentences = makeSentences_internal(text_info, new_tok_counter, sent_len_counter, attribute_list, max_sentence_length * 3, False)
     return sentences
 
-def makeSentences_paragraph(text_info, new_tok_counter, sent_len_counter):
-
+def makeSentences_paragraph(text_info, new_tok_counter, sent_len_counter, attribute_list):
     # in paragraph mode, there is no max_sentence_length, so we pass 0
-    sentences = makeSentences_internal(text_info, new_tok_counter, sent_len_counter, 0, True)
+    sentences = makeSentences_internal(text_info, new_tok_counter, sent_len_counter, attribute_list, 0, True)
     return sentences
 
 # writes unified tokens to a file
@@ -339,7 +329,7 @@ def makeSentences_paragraph(text_info, new_tok_counter, sent_len_counter):
 # suppose we are looking for "anthracycline", but the words list is ["anthracycline-induced", "cardiomyopathy", ...]
 # this function modifies the list of words to be ["anthracycline", "-induced", "cardiomyopathy", ...], taking in index of 0
 
-def modifyDict(line_dict, target_word, index):
+def modifyDict(line_dict, target_word, index, attribute_list):
     """
     Modify dictionary to find missing words.
     For example, we're looking for "anthracycline", but the word list is ["anthracycline-induced", "cardiomyopathy", ...]
@@ -418,19 +408,19 @@ def modifyDict(line_dict, target_word, index):
         # Ensure attributes list length is not less than index
         if len(line_dict['attributes']) <= index:
             line_dict['attributes'].extend(["O"] * (index + 1 - len(line_dict['attributes'])))
-        
+
         # Get current attribute value as default (tuple of 'O's)
-        default_attr = tuple('O' for _ in ATTRIBUTE_LIST)
+        default_attr = tuple('O' for _ in attribute_list)
         if index < len(line_dict['attributes']):
             default_attr = line_dict['attributes'][index]
-        
+
         # Update attributes list
         line_dict['attributes'] = line_dict['attributes'][0:index] + \
             [default_attr for i in range(0, len(new_words))] + \
             line_dict['attributes'][index+1:]
     else:
         # If attributes doesn't exist, create and initialize it
-        line_dict['attributes'] = [tuple('O' for _ in ATTRIBUTE_LIST)] * len(line_dict['words'])
+        line_dict['attributes'] = [tuple('O' for _ in attribute_list)] * len(line_dict['words'])
 
     return line_dict, targetLocation
 
@@ -504,15 +494,15 @@ def getWordsArray(line, start=None):
         
         # 1. Handle arrow symbols
         if '↑' in initialToken or '↓' in initialToken or '→' in initialToken or '←' in initialToken or '/' in initialToken or '+' in initialToken or \
-           '?' in initialToken or '<' in initialToken or '>' in initialToken:
+           '?' in initialToken or '<' in initialToken or '>' in initialToken or '"' in initialToken or "'" in initialToken:
             newTempTokens = []
             for token in tempTokens:
                 # Only process tokens containing arrows
                 if '↑' in token or '↓' in token or '→' in token or '←' in token or '/' in token or '+' in token or \
-                   '?' in token or '<' in token or '>' in token:
+                   '?' in token or '<' in token or '>' in token or '"' in token or "'" in token:
                     current_token = ""
                     for char in token:
-                        if char in ['↑', '↓', '→', '←', '/', '+', '?', '<', '>']:
+                        if char in ['↑', '↓', '→', '←', '/', '+', '?', '<', '>', '"', "'"]:
                             if current_token:
                                 newTempTokens.append(current_token)
                                 current_token = ""
@@ -530,7 +520,7 @@ def getWordsArray(line, start=None):
         # Check if it's a pattern of letter followed by hyphen/plus, or letter followed by period at end
         newTokens = []
         for token in tempTokens:
-            if (re.search(r'[a-zA-Z][\-\+\.]+', token) or 
+            if (re.search(r'[a-zA-Z][\-\+\.\"\']+', token) or 
                 re.search(r'[0-9]\.$', token) or
                 re.search(r'[a-zA-Z]\.$', token) or
                 re.search(r'[a-zA-Z]\/$', token) or
@@ -547,7 +537,7 @@ def getWordsArray(line, start=None):
                     char = token[i]
                     
                     # Check if current character is a letter and next is -, + or period at end
-                    if ((i < len(token) - 1 and re.search(r'[a-zA-Z]', char) and token[i+1] in ['-', '+', '.']) or 
+                    if ((i < len(token) - 1 and re.search(r'[a-zA-Z]', char) and token[i+1] in ['-', '+', '.', '"', "'"]) or 
                         (i == len(token) - 2 and (token[i+1] == '.' or token[i+1] == '/')) or
                         (i < len(token) - 1 and re.search(r'[0-9]', char) and re.search(r'[a-zA-Z]', token[i+1])) or
                         (i == 1 and (char == '3' or char == '4') and token[i-1] == 'C' and i < len(token)-1 and re.search(r'[0-9]', token[i+1])) or
@@ -563,12 +553,12 @@ def getWordsArray(line, start=None):
                         # Collect all consecutive special characters
                         special_chars = ""
                         j = i + 1
-                        while j < len(token) and token[j] in ['-', '+', '.']:
+                        while j < len(token) and token[j] in ['-', '+', '.', '"', "'"]:
                             special_chars += token[j]
                             j += 1
 
                         # Process special characters
-                        if special_chars and all(c in ['-', '+', '.'] for c in special_chars):
+                        if special_chars and all(c in ['-', '+', '.', '"', "'"] for c in special_chars):
                             for c in special_chars:
                                 newTokens.append(c)
                         elif special_chars == "." and j == len(token):
@@ -673,3 +663,4 @@ def normWord(word):
         return newword
     else:
         return word
+    

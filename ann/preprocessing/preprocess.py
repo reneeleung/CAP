@@ -9,20 +9,19 @@ from preprocess_utils import readTextFile, readAnnFile, readEntities, makeSenten
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import ATTRIBUTE_LIST
 
 class Preprocessor:
-    def __init__(self):
-        pass # do nothing
-
-    def main(self, source_dir):
-        txt_file = source_dir + "/dataset1_train.raw"
-        self.unify_train(source_dir, txt_file)
-        return txt_file
+    def __init__(self, attribute_list):
+        """
+        attribute_list: ordered list of concept names from annotation_config['attributeTypes'].
+        """
+        self.attribute_list = list(attribute_list)
 
     def _get_default_attr_str(self):
         """Get default attribute string with 'O' for all attributes."""
-        return " ".join(["O"] * len(ATTRIBUTE_LIST))
+        if len(self.attribute_list) == 0:
+            return "NONE"
+        return " ".join(["O"] * len(self.attribute_list))
 
     def _format_attributes(self, attributes):
         """
@@ -34,6 +33,8 @@ class Preprocessor:
         Returns:
             String with all attribute values separated by spaces
         """
+        if len(self.attribute_list) == 0:
+            return "NONE"
         if attributes is None:
             return self._get_default_attr_str()
         
@@ -42,18 +43,23 @@ class Preprocessor:
             if attributes == "O":
                 return self._get_default_attr_str()
             # If it's a single attribute value, put it in the first position
-            attr_values = [attributes] + ["O"] * (len(ATTRIBUTE_LIST) - 1)
+            attr_values = [attributes] + ["O"] * (len(self.attribute_list) - 1)
             return " ".join(attr_values)
         
         # If it's a tuple or list
         if isinstance(attributes, (tuple, list)):
             # Pad with 'O' if shorter than number of attributes
-            padded = list(attributes) + ["O"] * (len(ATTRIBUTE_LIST) - len(attributes))
-            # Truncate if longer
-            padded = padded[:len(ATTRIBUTE_LIST)]
+            padded = list(attributes) + ["O"] * (len(self.attribute_list) - len(attributes))
+            padded = padded[:len(self.attribute_list)]
             return " ".join(padded)
         
         return self._get_default_attr_str()
+
+    def main(self, source_dir, attribute_list):
+        self.attribute_list = list(attribute_list)
+        txt_file = source_dir + "/dataset1_train.raw"
+        self.unify_train(source_dir, txt_file, attribute_list)
+        return txt_file
 
     def writeSeqFile_test(self, sentences, output_file, text_file):
         """Write test sentences to output file."""
@@ -89,7 +95,7 @@ class Preprocessor:
                 output_file.write('\n')
             output_file.write('\n')
 
-    def unify_train(self, folder, t_filename):
+    def unify_train(self, folder, t_filename, attribute_list):
         text_files = glob.glob(folder + "/*.txt")
         t_output = open(t_filename, "w")
         new_tok_counter = Counter()
@@ -101,11 +107,13 @@ class Preprocessor:
 
             try:
                 t_lines, a_lines, e_lines, r_lines, t_stats, r_stats = readAnnFile(ann_file)
-                text_info, entity_dict = readEntities(t_lines, a_lines, e_lines, r_lines, text_info)
+                text_info, entity_dict = readEntities(
+                    t_lines, a_lines, e_lines, r_lines, text_info, attribute_list
+                )
             except FileNotFoundError:
                 pass
             
-            sentences = makeSentences(text_info, new_tok_counter, sent_len_counter)
+            sentences = makeSentences(text_info, new_tok_counter, sent_len_counter, attribute_list)
             self.writeSeqFile_train(sentences, t_output, text_files[i])
         
         t_output.close()
