@@ -14,7 +14,7 @@ let currentIndex = 0;
 let fileList = [];
 let currentDir = "preprocessing";
 let tempDir = currentDir;
-let showAnnotations = false;
+let showAnnotations = true;
 let disablePauseTraining = true;
 
 // Load annotation_config.json from a specific directory

@@ -92,24 +92,29 @@ def select_by_cluster(index, sentence_length, target_length, seed, clusterID):
     cluster_size_max = max(df.subID)
     cluster_size_min = min(df.subID)
 
-    for subID in range(cluster_size_min,cluster_size_max):
+    # If every remaining row is in a singleton cluster, max(subID) == 0 and
+    # range(0, 0) is empty. Fall back to a single pass so at least one row is
+    # selected (matching the intent of "select up to target_length tokens").
+    _end = cluster_size_max if cluster_size_max > cluster_size_min else cluster_size_min + 1
+    for subID in range(cluster_size_min, _end):
         if current_length<target_length:
             # Iterate through rows to select indices
             df_sub = df[df.subID == subID]
             np.random.seed(seed)
             df_sub = df_sub.sample(frac=1).reset_index(drop=True)
-            for _, row in df_sub.iterrows():
-                index = row["index"]
+            for _, row in df.iterrows():
+                row_index = row["index"]
                 length = row["sentence_length"]
                 cluster_id = row["clusterID"]
                 # Check if adding the current sentence length exceeds the target
+
                 if current_length + length < target_length:
-                    selected_indices.append(index)
+                    selected_indices.append(row_index)
                     current_length += length
                     cluster_counts[cluster_id] += 1
                     # If the total length exceeds the target, stop
                 else:
-                    selected_indices.append(index)
+                    selected_indices.append(row_index)
                     current_length += length
                     cluster_counts[cluster_id] += 1
                     break

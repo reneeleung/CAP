@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 from transformers import AutoTokenizer, BertPreTrainedModel, BertModel
 from sklearn.utils.class_weight import compute_class_weight
@@ -73,28 +74,35 @@ class BertForTokenAndMultiAttributeClassification(BertPreTrainedModel):
         
         loss = None
         if labels is not None:
-            # Entity loss
-            entity_weights = attribute_labels.get('entity_weights', None)
-            loss_fct_entity = nn.CrossEntropyLoss(
-                weight=entity_weights, ignore_index=-100
-            ) if entity_weights is not None else nn.CrossEntropyLoss(ignore_index=-100)
-            loss = loss_fct_entity(entity_logits.view(-1, self.num_entity_labels), labels.view(-1))
-            
-            # Attribute losses
+            loss = entity_logits.sum() * 0.0   # zero, but keeps requires_grad
+
+            # Entity loss — only if at least one active label
+            if (labels != -100).any():
+                entity_weights = attribute_labels.get('entity_weights', None)
+                loss_fct_entity = nn.CrossEntropyLoss(
+                    weight=entity_weights, ignore_index=-100
+                ) if entity_weights is not None else nn.CrossEntropyLoss(ignore_index=-100)
+                loss = loss + loss_fct_entity(
+                    entity_logits.view(-1, self.num_entity_labels), labels.view(-1)
+                )
+
+            # Attribute losses — skip any head with no active labels
             for attr_name in self.attribute_list:
                 attr_labels = attribute_labels.get(f"{attr_name}_labels", None)
-                if attr_labels is not None:
-                    attr_logits = attribute_logits[attr_name]
-                    num_labels = self.num_attribute_labels[attr_name]
-                    attr_weights = attribute_labels.get(f"{attr_name}_weights", None)
-                    
-                    loss_fct = nn.CrossEntropyLoss(
-                        weight=attr_weights, ignore_index=-100
-                    ) if attr_weights is not None else nn.CrossEntropyLoss(ignore_index=-100)
-                    
-                    attr_loss = loss_fct(attr_logits.view(-1, num_labels), attr_labels.view(-1))
-                    loss += attr_loss
-        
+                if attr_labels is None:
+                    continue
+                if not (attr_labels != -100).any():
+                    continue
+                attr_logits = attribute_logits[attr_name]
+                num_labels = self.num_attribute_labels[attr_name]
+                attr_weights = attribute_labels.get(f"{attr_name}_weights", None)
+                loss_fct = nn.CrossEntropyLoss(
+                    weight=attr_weights, ignore_index=-100
+                ) if attr_weights is not None else nn.CrossEntropyLoss(ignore_index=-100)
+                loss = loss + loss_fct(
+                    attr_logits.view(-1, num_labels), attr_labels.view(-1)
+                )
+
         # Return loss and all logits
         return tuple([loss] + logits)
 
@@ -186,6 +194,7 @@ class BertALPipeline:
             **num_attribute_labels
         )
         self.initial_model.to(self.device)
+        self._template_model = None   # lazy-load cache
 
     def _get_num_attribute_labels(self):
         """Helper to get all attribute label counts as a dict."""
@@ -194,6 +203,30 @@ class BertALPipeline:
             for attr_name in self.attribute_list
         }
 
+    def _get_fresh_template_model(self, pretrained_model_path):
+        """Load the checkpoint once, keep as a template on CPU. Return a deep copy."""
+        if self._template_model is None:
+            if pretrained_model_path and os.path.exists(pretrained_model_path):
+                print(f"Caching template model from {pretrained_model_path}")
+                self._template_model = BertForTokenAndMultiAttributeClassification.from_pretrained(
+                    self.tokenizer.name_or_path,
+                    num_entity_labels=self.num_entity_labels,
+                    attribute_list=self.attribute_list,
+                    **self._get_num_attribute_labels()
+                )
+                self._template_model.load_state_dict(
+                    torch.load(pretrained_model_path, map_location='cpu')
+                )
+                self._template_model.cpu()   # keep on CPU to save GPU memory between iters
+            else:
+                self._template_model = BertForTokenAndMultiAttributeClassification.from_pretrained(
+                    self.tokenizer.name_or_path,
+                    num_entity_labels=self.num_entity_labels,
+                    attribute_list=self.attribute_list,
+                    **self._get_num_attribute_labels()
+                ).cpu()
+        return copy.deepcopy(self._template_model).to(self.device)
+    
     def load_model_from_pth(self, model_path):
         print(f"Loading model: {model_path}")
         model = BertForTokenAndMultiAttributeClassification.from_pretrained(
@@ -394,7 +427,7 @@ class BertALPipeline:
                     self.socketio.emit('annotation_request', {
                         'txt_file_path': txt_file_path,
                         'sent_id': str(row['sent ID']),
-                        'num_annotated': len(self.annotated_data) if hasattr(self, 'annotated_data') else 0,
+                        'num_annotated': self.annotated_data['file id'].nunique() if hasattr(self, 'annotated_data') else 0,
                         'total': self.to_annotate,
                         'disable_pause': disable_pause,
                         'data_folder': self.data_folder,
@@ -415,7 +448,7 @@ class BertALPipeline:
                 self.socketio.emit('annotation_request', {
                     'txt_file_path': txt_file_path,
                     'sent_id': str(row['sent ID']),
-                    'num_annotated': len(self.annotated_data) if hasattr(self, 'annotated_data') else 0,
+                    'num_annotated': self.annotated_data['file id'].nunique() if hasattr(self, 'annotated_data') else 0,
                     'total': self.to_annotate,
                     'disable_pause': disable_pause,
                     'data_folder': self.data_folder,
@@ -437,7 +470,7 @@ class BertALPipeline:
             'txt_file_path': txt_file_path,
             'json_file_path': json_file_path,
             'sent_id': str(row['sent ID']),
-            'num_annotated': len(self.annotated_data) if hasattr(self, 'annotated_data') else 0,
+            'num_annotated': self.annotated_data['file id'].nunique() if hasattr(self, 'annotated_data') else 0,
             'total': self.to_annotate,
             'disable_pause': disable_pause,
             'data_folder': self.data_folder,
@@ -1015,7 +1048,7 @@ class BertALPipeline:
         self.NBest = NBest
         
         self.traindata = self.readData()
-        self.to_annotate = min(len(self.traindata), max_docs)
+        self.to_annotate = min(self.traindata['file id'].nunique(), max_docs)
         self.initial_choices_number = max(int(initial_prop * len(self.traindata)), 1)
         
         if choices_number:
@@ -1056,7 +1089,7 @@ class BertALPipeline:
             
             # Train model
             if pretrained_model_path and os.path.exists(pretrained_model_path):
-                temp_model = self.load_model_from_pth(pretrained_model_path)
+                temp_model = self._get_fresh_template_model(pretrained_model_path)
             else:
                 temp_model = BertForTokenAndMultiAttributeClassification.from_pretrained(
                     self.tokenizer.name_or_path,
@@ -1094,10 +1127,10 @@ class BertALPipeline:
             self.annotated_idx = [int(x) for x in self.annotated_idx]
             
             # Process query data
-            if len(self.annotated_data) >= self.to_annotate:
+            if self.annotated_data['file id'].nunique() >= self.to_annotate:
                 self.end_training = True
                 break
-            
+
             # Create query data with predictions
             query_data = self._process_query_data(i)
             if query_data is None:
