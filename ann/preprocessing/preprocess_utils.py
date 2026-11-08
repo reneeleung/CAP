@@ -615,12 +615,43 @@ def getWordsArray(line, start=None):
                 # No special pattern, keep token as is
                 newTokens.append(token)
         
+        # CJK-aware split: expand any token containing CJK chars into
+        # individual characters (WordPiece-style), so alignment with
+        # per-character annotations works.
+        def _is_cjk_ch(ch):
+            cp = ord(ch)
+            return (
+                (0x4E00  <= cp <= 0x9FFF)  or
+                (0x3400  <= cp <= 0x4DBF)  or
+                (0xF900  <= cp <= 0xFAFF)  or
+                (0x3000  <= cp <= 0x303F)  or
+                (0xFF00  <= cp <= 0xFFEF)
+            )
+
+        cjk_split = []
+        for token in newTokens:
+            if any(_is_cjk_ch(c) for c in token):
+                buf = ""
+                for c in token:
+                    if _is_cjk_ch(c):
+                        if buf:
+                            cjk_split.append(buf)
+                            buf = ""
+                        cjk_split.append(c)
+                    else:
+                        buf += c
+                if buf:
+                    cjk_split.append(buf)
+            else:
+                cjk_split.append(token)
+        newTokens = cjk_split
+
         # Add to main array
         for token in newTokens:
             if token.strip():  # Ensure it's not just whitespace
                 words_array.append(token)
                 if start is not None:
-                    starts_array.append(current_pos+space)
+                    starts_array.append(current_pos + space)
                     numeric, newword = isNumber(token)
                     normwords_array.append(newword if numeric else token)
                     current_pos += len(token)

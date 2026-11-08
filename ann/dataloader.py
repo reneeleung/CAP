@@ -121,18 +121,21 @@ class test_dataset(Dataset):
         encoded_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
         encoded_attr = {a: np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
                         for a in self.attribute_list}
-        i = 0
-        for idx, mapping in enumerate(encoding["offset_mapping"]):
-            if mapping[0] == 0 and mapping[1] != 0:
-                encoded_labels[idx] = entity_labels_indices[i]
+        word_ids = encoding.word_ids()
+        for idx, wid in enumerate(word_ids):
+            if wid is not None and wid < len(sentences):
+                encoded_labels[idx] = entity_labels_indices[wid]
                 for a in self.attribute_list:
-                    encoded_attr[a][idx] = encoded_attr_per_token[a][i]
-                i += 1
+                    encoded_attr[a][idx] = encoded_attr_per_token[a][wid]
 
         item = {key: torch.LongTensor(val) for key, val in encoding.items()}
         item['labels'] = torch.LongTensor(encoded_labels)
         for a in self.attribute_list:
             item[f'{a}_labels'] = torch.LongTensor(encoded_attr[a])
+        # Add word_ids so predict() can map subwords back to original tokens
+        item['word_ids'] = torch.LongTensor(
+            [w if w is not None else -1 for w in word_ids]
+        )
         return item
 
     def __len__(self):
@@ -189,13 +192,12 @@ class train_dataset(Dataset):
         encoded_labels = np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
         encoded_attr = {a: np.ones(len(encoding["offset_mapping"]), dtype=int) * -100
                         for a in self.attribute_list}
-        i = 0
-        for idx, mapping in enumerate(encoding["offset_mapping"]):
-            if mapping[0] == 0 and mapping[1] != 0:
-                encoded_labels[idx] = entity_labels_indices[i]
+        word_ids = encoding.word_ids()
+        for idx, wid in enumerate(word_ids):
+            if wid is not None and wid < len(sentences):
+                encoded_labels[idx] = entity_labels_indices[wid]
                 for a in self.attribute_list:
-                    encoded_attr[a][idx] = encoded_attr_per_token[a][i]
-                i += 1
+                    encoded_attr[a][idx] = encoded_attr_per_token[a][wid]
         item = {key: torch.LongTensor(val) for key, val in encoding.items()}
         item['labels'] = torch.LongTensor(encoded_labels)
         for a in self.attribute_list:

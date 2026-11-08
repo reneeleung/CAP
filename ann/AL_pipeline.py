@@ -1,4 +1,5 @@
 import copy
+import threading
 import numpy as np
 from transformers import AutoTokenizer, BertPreTrainedModel, BertModel
 from sklearn.utils.class_weight import compute_class_weight
@@ -15,7 +16,7 @@ import json
 from functools import partial
 import queue
 import pandas as pd
-from dataloader import test_dataset, train_dataset, eval_dataset
+from dataloader import test_dataset, train_dataset, eval_dataset, _split_tokens, _text_has_cjk
 from AL_strategy import (
     RandomSentenceStrategy,
     RandomStrategy,
@@ -164,7 +165,7 @@ class BertALPipeline:
         self.entities = [i.replace('B-', '') for i in labels_to_ids if i.startswith('B-')]
 
         # Hyperparameters       
-        self.EPOCHS = 3
+        self.EPOCHS = 2
         self.LEARNING_RATE = 2e-05
         self.MAX_GRAD_NORM = 1.0
         self.tokenizer = AutoTokenizer.from_pretrained(modelcard)
@@ -195,6 +196,7 @@ class BertALPipeline:
         )
         self.initial_model.to(self.device)
         self._template_model = None   # lazy-load cache
+        self._template_lock = threading.Lock()
 
     def _get_num_attribute_labels(self):
         """Helper to get all attribute label counts as a dict."""
@@ -204,29 +206,40 @@ class BertALPipeline:
         }
 
     def _get_fresh_template_model(self, pretrained_model_path):
-        """Load the checkpoint once, keep as a template on CPU. Return a deep copy."""
-        if self._template_model is None:
-            if pretrained_model_path and os.path.exists(pretrained_model_path):
-                print(f"Caching template model from {pretrained_model_path}")
-                self._template_model = BertForTokenAndMultiAttributeClassification.from_pretrained(
-                    self.tokenizer.name_or_path,
-                    num_entity_labels=self.num_entity_labels,
-                    attribute_list=self.attribute_list,
-                    **self._get_num_attribute_labels()
-                )
-                self._template_model.load_state_dict(
-                    torch.load(pretrained_model_path, map_location='cpu')
-                )
-                self._template_model.cpu()   # keep on CPU to save GPU memory between iters
-            else:
-                self._template_model = BertForTokenAndMultiAttributeClassification.from_pretrained(
-                    self.tokenizer.name_or_path,
-                    num_entity_labels=self.num_entity_labels,
-                    attribute_list=self.attribute_list,
-                    **self._get_num_attribute_labels()
-                ).cpu()
+        with self._template_lock:
+            if self._template_model is None:
+                if pretrained_model_path and os.path.exists(pretrained_model_path):
+                    print(f"Caching template model from {pretrained_model_path}")
+                    m = BertForTokenAndMultiAttributeClassification.from_pretrained(
+                        self.tokenizer.name_or_path,
+                        num_entity_labels=self.num_entity_labels,
+                        attribute_list=self.attribute_list,
+                        **self._get_num_attribute_labels()
+                    )
+                    m.load_state_dict(torch.load(pretrained_model_path, map_location='cpu'))
+                    m.cpu()
+                    self._template_model = m
+                else:
+                    self._template_model = BertForTokenAndMultiAttributeClassification.from_pretrained(
+                        self.tokenizer.name_or_path,
+                        num_entity_labels=self.num_entity_labels,
+                        attribute_list=self.attribute_list,
+                        **self._get_num_attribute_labels()
+                    ).cpu()
         return copy.deepcopy(self._template_model).to(self.device)
     
+    def preload_model(self, pretrained_model_path):
+        if not pretrained_model_path or not os.path.exists(pretrained_model_path):
+            return
+        try:
+            print(f"[preload_model] Preloading template from {pretrained_model_path}")
+            self._get_fresh_template_model(pretrained_model_path)
+            print(f"[preload_model] Template cached")
+        except Exception as e:
+            print(f"[preload_model] Failed: {e}")
+            with self._template_lock:
+                self._template_model = None
+        
     def load_model_from_pth(self, model_path):
         print(f"Loading model: {model_path}")
         model = BertForTokenAndMultiAttributeClassification.from_pretrained(
@@ -693,7 +706,6 @@ class BertALPipeline:
             for batch in test_loader:
                 ids = batch['input_ids'].to(self.device, dtype=torch.long)
                 mask = batch['attention_mask'].to(self.device, dtype=torch.long)
-                offset_mapping = batch['offset_mapping']
 
                 outputs = self.model(input_ids=ids, attention_mask=mask)
                 entity_logits = outputs[1]
@@ -704,54 +716,58 @@ class BertALPipeline:
 
                 entity_pred = torch.argmax(entity_logits, dim=2)
 
+                word_ids_batch = batch['word_ids']  # [B, L], -1 for special/pad
+
                 for s in range(entity_pred.shape[0]):
                     current_entity_preds = []
                     current_attr_preds = {attr_name: [] for attr_name in self.attribute_list}
-                    mappings = offset_mapping[s].cpu().numpy()
+                    word_ids_s = word_ids_batch[s].cpu().numpy()
 
-                    for idx, mapping in enumerate(mappings):
-                        if mapping[0] == 0 and mapping[1] != 0:
-                            entity_id = entity_pred[s, idx].item()
-                            entity_label = self.ids_to_labels[entity_id]
+                    # For each original token (word_id), keep only its FIRST subword's prediction
+                    first_subword_idx = {}
+                    for idx, wid in enumerate(word_ids_s):
+                        if wid == -1:
+                            continue
+                        if wid not in first_subword_idx:
+                            first_subword_idx[wid] = idx
 
-                            # Filter out unwanted event types (existing behavior)
-                            if any(entity_label.endswith(event_type) or entity_label == event_type
-                                for event_type in self.event_types):
-                                entity_label = "O"
+                    for wid in sorted(first_subword_idx.keys()):
+                        idx = first_subword_idx[wid]
+                        entity_id = entity_pred[s, idx].item()
+                        entity_label = self.ids_to_labels[entity_id]
 
-                            current_entity_preds.append(entity_label)
+                        # Filter unwanted event types
+                        if any(entity_label.endswith(event_type) or entity_label == event_type
+                               for event_type in self.event_types):
+                            entity_label = "O"
 
-                            # Entity *type* (strip B-/I-)
-                            if entity_label.startswith(("B-", "I-")):
-                                entity_type = entity_label[2:]
+                        current_entity_preds.append(entity_label)
+
+                        if entity_label.startswith(("B-", "I-")):
+                            entity_type = entity_label[2:]
+                        else:
+                            entity_type = None
+
+                        for attr_name in self.attribute_list:
+                            if entity_valid_ids is not None:
+                                valid_ids = entity_valid_ids.get(entity_type, {}).get(attr_name, [])
+                                if not valid_ids:
+                                    current_attr_preds[attr_name].append("N/A")
+                                    continue
                             else:
-                                entity_type = None
+                                valid_ids = None
 
-                            for attr_name in self.attribute_list:
-                                # Decide valid labels for this (entity_type, concept)
-                                if entity_valid_ids is not None:
-                                    valid_ids = (
-                                        entity_valid_ids.get(entity_type, {}).get(attr_name, [])
-                                    )
-                                    if not valid_ids:
-                                        # Concept not applicable to this entity type
-                                        current_attr_preds[attr_name].append("N/A")
-                                        continue
-                                else:
-                                    # No map → no masking (e.g. SLEDAI "all" mode)
-                                    valid_ids = None
+                            logits_tok = attr_logits[attr_name][s, idx]
+                            if valid_ids is not None and len(valid_ids) < logits_tok.shape[0]:
+                                masked = torch.full_like(logits_tok, float('-inf'))
+                                idx_tensor = torch.tensor(valid_ids, device=logits_tok.device)
+                                masked[idx_tensor] = logits_tok[idx_tensor]
+                                attr_id = torch.argmax(masked).item()
+                            else:
+                                attr_id = torch.argmax(logits_tok).item()
 
-                                logits_tok = attr_logits[attr_name][s, idx]  # (C,)
-                                if valid_ids is not None and len(valid_ids) < logits_tok.shape[0]:
-                                    masked = torch.full_like(logits_tok, float('-inf'))
-                                    idx_tensor = torch.tensor(valid_ids, device=logits_tok.device)
-                                    masked[idx_tensor] = logits_tok[idx_tensor]
-                                    attr_id = torch.argmax(masked).item()
-                                else:
-                                    attr_id = torch.argmax(logits_tok).item()
-
-                                ids_to_attr = getattr(self, f'ids_to_{attr_name}')
-                                current_attr_preds[attr_name].append(ids_to_attr[attr_id])
+                            ids_to_attr = getattr(self, f'ids_to_{attr_name}')
+                            current_attr_preds[attr_name].append(ids_to_attr[attr_id])
 
                     entity_preds.append(current_entity_preds)
                     for attr_name in self.attribute_list:
@@ -837,7 +853,7 @@ class BertALPipeline:
             id_column = 'ID'
         
         for i, row in data.iterrows():
-            sentence = row['text'].strip().split()
+            sentence = _split_tokens(row['text'], _text_has_cjk(row['text']))
             entity_preds = predictions['entity_preds'][i] if i < len(predictions['entity_preds']) else []
             
             attr_preds = {
@@ -941,7 +957,7 @@ class BertALPipeline:
         self.annotated_entity = pd.DataFrame([self.count_entity(self.annotated_data, iter=0)], columns=self.entities+['iter'])
         self.query_data = None
         
-        self.model = self.load_model_from_pth(pretrained_model_path) if (pretrained_model_path and os.path.exists(pretrained_model_path)) else self.initial_model
+        self.model = self._get_fresh_template_model(pretrained_model_path)
 
     def _resume_training(self, pretrained_model_path):
         """Resume training from checkpoint."""
@@ -1068,6 +1084,16 @@ class BertALPipeline:
             self._resume_training(pretrained_model_path)
 
         for i in range(self.start_echo, self.stop_echo):
+            # EXIT CHECK — must run before select_idx, which requires non-empty unannotated_data
+            if (len(self.unannotated_data) == 0
+                    or self.annotated_data['file id'].nunique() >= self.to_annotate):
+                print(f"[INFO] Training complete at iteration {i}: "
+                      f"annotated_file_ids={self.annotated_data['file id'].nunique()} "
+                      f"to_annotate={self.to_annotate} "
+                      f"unannotated_rows={len(self.unannotated_data)}")
+                self.end_training = True
+                break
+
             print('** Start training iteration', str(i), '**')
             print("Before Iteration: \n", self.annotated_data)
             
@@ -1125,11 +1151,6 @@ class BertALPipeline:
             )
             self.annotated_idx = self.unannotated_data.iloc[self.annotated_idx]['TrainID'].tolist()
             self.annotated_idx = [int(x) for x in self.annotated_idx]
-            
-            # Process query data
-            if self.annotated_data['file id'].nunique() >= self.to_annotate:
-                self.end_training = True
-                break
 
             # Create query data with predictions
             query_data = self._process_query_data(i)

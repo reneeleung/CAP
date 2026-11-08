@@ -1767,25 +1767,45 @@ document.addEventListener("dblclick", function (event) {
                     console.warn("No entity radio for", entityName, "— is annotationConfig loaded?");
                     return;
                 }
-                entityRadio.checked = true;
-                document.querySelectorAll('input[name="event"]').forEach(eradio => eradio.checked = false);
-                document.querySelectorAll('#attribute-area input[type="radio"]').forEach(attr => {
-                    attr.checked = false;
-                });
-                entityRadio.dispatchEvent(new Event("change"));
 
-                const a = annotation.annotation.attribute || {};
-                Object.values(a).filter(Boolean).forEach(attr => {
-                    document.querySelectorAll('#attribute-area input[type="radio"]').forEach(r => {
-                        if (!r.disabled && r.dataset.displayValue === attr) r.checked = true;
+                // --- Reset ALL attribute state first ---
+                document.querySelectorAll('#attribute-area input[type="radio"]').forEach(r => {
+                    r.checked = false;
+                });
+                document.querySelectorAll('#attribute-area .attribute-row').forEach(row => {
+                    row.style.display = "";
+                    row.querySelectorAll('input[type="radio"]').forEach(r => {
+                        r.disabled = false;
+                        r.parentElement.style.display = "";
                     });
                 });
-            } else if (annotation.annotation.event !== "none") {
-                document.querySelector(`input[name="event"][value="${eventName}"]`).checked = true;
-                document.querySelectorAll('input[name="entity"]').forEach(eradio => eradio.checked = false);
-                document.getElementById("attribute-area").style.display = "none";
-                document.querySelectorAll('#attribute-area input[type="radio"]').forEach(attr => {
-                    attr.checked = false;
+            
+                // Uncheck events & select entity, then let change handler set defaults
+                document.querySelectorAll('input[name="event"]').forEach(eradio => eradio.checked = false);
+                entityRadio.checked = true;
+                entityRadio.dispatchEvent(new Event("change"));
+                document.querySelectorAll('#attribute-area input[type="radio"]').forEach(r => {
+                    if (!r.disabled) r.checked = false;
+                });
+            
+                // --- Now apply predicted attributes (override defaults) ---
+                const spanStartAnnotation = annotations.find(ann => ann.token_seq === startTokenSeqId);
+                const a = (spanStartAnnotation && spanStartAnnotation.annotation.attribute) || {};
+                Object.entries(a).filter(([, v]) => v).forEach(([prefix, attrVal]) => {
+                    let matched = false;
+                    document.querySelectorAll(`#attribute-area input[name="${prefix}"]`).forEach(r => {
+                        if (r.disabled) return;
+                        // Match either displayValue or raw value, and also try attributeDisplayName()
+                        if (r.dataset.displayValue === attrVal ||
+                            r.value === attrVal ||
+                            attributeDisplayName(r.dataset.displayValue) === attrVal) {
+                            r.checked = true;
+                            matched = true;
+                        }
+                    });
+                    if (!matched) {
+                        console.warn(`Predicted attribute "${prefix}=${attrVal}" has no matching enabled radio`);
+                    }
                 });
             }
 
