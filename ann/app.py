@@ -199,6 +199,11 @@ def handle_start_training(data):
 
     def run_training():
         pipeline.end_training = False
+        threading.Thread(
+            target=pipeline.preload_model,
+            args=(model_base,),
+            daemon=True,
+        ).start()
         pipeline.activelearning(strategyname='CNBSE', start_echo=0, stop_echo=150, seed=seed, resume=False,
                                 query_prop=0.01, initial_prop=0.03, NBest = 3, change_loss_threshold = 0.005, pretrained_model_path=model_base, max_docs=30)
         # copy important csv files to directory
