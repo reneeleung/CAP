@@ -2,7 +2,6 @@ import copy
 import threading
 import numpy as np
 from transformers import AutoTokenizer, BertPreTrainedModel, BertModel
-from sklearn.utils.class_weight import compute_class_weight
 import pickle
 import torch
 from torch.utils.data import DataLoader
@@ -12,6 +11,7 @@ torch.manual_seed(0)
 np.random.seed(0)
 import os
 from tqdm import tqdm
+import time
 import json
 from functools import partial
 import queue
@@ -166,8 +166,8 @@ class BertALPipeline:
 
         # Hyperparameters       
         self.EPOCHS = 2
-        self.LEARNING_RATE = 2e-05
-        self.MAX_GRAD_NORM = 1.0
+        self.LEARNING_RATE = 5e-05
+        self.MAX_GRAD_NORM = 10
         self.tokenizer = AutoTokenizer.from_pretrained(modelcard)
         self.MAX_LEN = 512
         self.strategylist = {
@@ -197,6 +197,8 @@ class BertALPipeline:
         self.initial_model.to(self.device)
         self._template_model = None   # lazy-load cache
         self._template_lock = threading.Lock()
+        self.timing_records = []   # backend waiting time; list of dicts, one per iteration
+        self._last_save_time = None
 
     def _get_num_attribute_labels(self):
         """Helper to get all attribute label counts as a dict."""
@@ -536,27 +538,6 @@ class BertALPipeline:
         
         return new_annotated_data, new_unannotated_data
 
-    def compute_class_weights(self, training_loader, num_labels, label_key='labels'):
-        all_labels = []
-        for batch in training_loader:
-            labels = batch[label_key].cpu().numpy().flatten()
-            all_labels.extend(labels[labels != -100])
-        
-        if len(all_labels) == 0:
-            return torch.ones(num_labels).to(self.device)
-        
-        unique_labels = np.unique(all_labels)
-        weights = compute_class_weight('balanced', classes=unique_labels, y=all_labels)
-        
-        weight_tensor = torch.ones(num_labels)
-        for label, weight in zip(unique_labels, weights):
-            weight_tensor[label] = weight
-        
-        # Cap weights to prevent instability
-        weight_tensor = torch.clamp(weight_tensor, max=4.5)
-        
-        return weight_tensor.to(self.device)
-
     def _prepare_training_batch(self, batch, device):
         """Prepare batch for training."""
         ids = batch['input_ids'].to(device, dtype=torch.long)
@@ -574,15 +555,6 @@ class BertALPipeline:
         device = self.device
         model.to(device)
         
-        # Compute class weights for entity and all attributes
-        entity_weights = self.compute_class_weights(training_loader, model.num_entity_labels, 'labels')
-        
-        # Compute weights for each attribute
-        attr_weights = {
-            attr_name: self.compute_class_weights(training_loader, model.num_attribute_labels[attr_name], f'{attr_name}_labels')
-            for attr_name in self.attribute_list
-        }
-        
         optimizer = torch.optim.Adam(params=model.parameters(), lr=self.LEARNING_RATE)
         
         for epoch in range(self.EPOCHS):
@@ -594,16 +566,11 @@ class BertALPipeline:
                 for batch in training_loader:
                     ids, mask, labels, attr_labels = self._prepare_training_batch(batch, device)
                     
-                    weights_kwargs = {'entity_weights': entity_weights}
-                    for attr_name in self.attribute_list:
-                        weights_kwargs[f'{attr_name}_weights'] = attr_weights[attr_name]
-                    
                     outputs = model(
                         input_ids=ids,
                         attention_mask=mask,
                         labels=labels,
                         **attr_labels,
-                        **weights_kwargs
                     )
                     loss = outputs[0]
                     nb_tr_steps += 1
@@ -1094,6 +1061,7 @@ class BertALPipeline:
                 self.end_training = True
                 break
 
+            iter_start_wall = time.time()
             print('** Start training iteration', str(i), '**')
             print("Before Iteration: \n", self.annotated_data)
             
@@ -1123,7 +1091,9 @@ class BertALPipeline:
                     attribute_list=self.attribute_list,
                     **self._get_num_attribute_labels()
                 ).to(self.device)
+            t_train_start = time.time()
             self.model, training_loss = self.trainBERT(model=temp_model, training_loader=training_loader)
+            t_train = time.time() - t_train_start
             
             self.training_losses.append(training_loss)
             
@@ -1133,7 +1103,9 @@ class BertALPipeline:
                 torch.save(self.model.state_dict(), self.workdir + '/models/RandomStart_seed' + str(self.seed) + '.pth')
 
             # Evaluation and selection
+            t_eval_start = time.time()
             scores, best_paths, masks, entropies = self._evaluate_and_select(evaluation_loader, i)
+            t_eval = time.time() - t_eval_start
             
             # Query selection
             strategy = self.strategylist[self.strategyname]
@@ -1153,7 +1125,22 @@ class BertALPipeline:
             self.annotated_idx = [int(x) for x in self.annotated_idx]
 
             # Create query data with predictions
+            t_pred_start = time.time()
             query_data = self._process_query_data(i)
+            t_pred = time.time() - t_pred_start
+
+            # Record this iteration's timing
+            self.timing_records.append({
+                'iteration': i,
+                't_train_s': round(t_train, 3),
+                't_eval_s': round(t_eval, 3),
+                't_pred_s': round(t_pred, 3),
+                't_iter_s': round(time.time() - iter_start_wall, 3),
+                'training_loss': training_loss,
+                'n_annotated': int(self.annotated_data['file id'].nunique()),
+                'n_unannotated': int(self.unannotated_data['file id'].nunique()),
+            })
+
             if query_data is None:
                 break
             
@@ -1196,3 +1183,8 @@ class BertALPipeline:
         
         print('** Finished training !!! **')
         self.end_training = True
+        pd.DataFrame(self.timing_records).to_csv(
+            self.workdir + '/results/scratch/' + self.strategyname + '/seed_' + str(self.seed) + '_timing.csv',
+            index=False,
+        )
+        print(f"[TIMING] wrote {len(self.timing_records)} iteration records")
